@@ -22,7 +22,7 @@ int str_to_int(char *s)
     return num * minus;
 }
 
-void exit_with_perror(char *buffer)
+void exit_with_perror(const char buffer[])
 {
     perror(buffer);
     exit(1);
@@ -32,7 +32,7 @@ void check_params_num(int argc)
 {
     if (argc != 3)
     {
-        printf("Invalid number of params. Usage ./prog_name ip_addr port");
+        printf(invalid_params);
         exit(1);
     }
 }
