@@ -1,7 +1,7 @@
 #ifndef ROBOT_MANAGER_HELPERS_H
 #define ROBOT_MANAGER_HELPERS_H
 
-#define BUFFER_SIZE 128
+#define BUFFER_SIZE 1024
 
 enum next_action {
     join,
