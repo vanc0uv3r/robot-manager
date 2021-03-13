@@ -5,7 +5,12 @@
 
 void play(Robot& r)
 {
-
+    r.wait_for_start();
+    printf("GAME HAS STARTED\n");
+    r.get_info();
+    r.parse_info();
+    r.get_market();
+    r.parse_market();
 }
 
 int main(int argc, char *argv[])
