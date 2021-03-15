@@ -26,63 +26,51 @@ private:
     int auto_plants;
     int sockfd;
     char buffer[BUFFER_SIZE];
+
+    void snd_server_msg(const char *msg) {dprintf(sockfd, "%s", msg);}
+
+    void rcv_server_msg();
+
+    void parse(int *params[], int params_num);
+
+    char *parse_str(int& i);
+
 public:
     Robot(char* ip_addr, char *port);
 
-    ~Robot()
-    {
-        close(sockfd);
-    };
+    ~Robot() {close(sockfd);};
 
     void join(const char *room_num);
 
     void create();
 
-    void snd_server_msg(const char *msg)
-    {
-        dprintf(sockfd, "%s", msg);
-    }
+    void wait_for_start();
 
-    void print_buffer()
-    {
-        printf("%s\n", buffer);
-    }
+    void get_info();
 
-    void rcv_server_msg();
+    void get_market();
 
-    void wait_for_start()
-    {
-        while (strncmp("START", buffer + 2, 5) != 0)
-            rcv_server_msg();
-    }
+    void make_turn();
 
-    void get_info()
-    {
-        snd_server_msg("info\n");
-        rcv_server_msg();
-    }
+    void sell();
 
-    void get_market()
-    {
-        snd_server_msg("market\n");
-        rcv_server_msg();
-    }
+    void buy();
 
-    void parse_market()
-    {
-        int *fields[4] = {&m.raw, &m.min_price, &m.prod, &m.max_price};
-        parse(fields, 4);
-    }
+    void make_prod();
 
-    void parse_info()
-    {
-        int *fields[5] = {&raw, &prod, &money, &plants, &auto_plants};
-        parse(fields, 5);
-    }
+    void me();
 
-    void parse(int *params[], int params_num);
+    void parse_market();
 
-    char *parse_str(int& i);
+    void parse_info();
+
+    void wait_other();
+
+    int no_winner() {return strstr(buffer, "WIN") == NULL;}
+
+    void define_winner();
+
+    void print_buffer() {printf("%s\n", buffer);}
 
 };
 
