@@ -7,10 +7,21 @@ void play(Robot& r)
 {
     r.wait_for_start();
     printf("GAME HAS STARTED\n");
-    r.get_info();
-    r.parse_info();
-    r.get_market();
-    r.parse_market();
+    while (r.no_winner())
+    {
+        r.get_info();
+        r.parse_info();
+        r.get_market();
+        r.parse_market();
+        r.me();
+        r.sell();
+        r.buy();
+        r.make_prod();
+        r.make_turn();
+        r.wait_other();
+        r.print_buffer();
+    }
+    r.define_winner();
 }
 
 int main(int argc, char *argv[])
