@@ -19,6 +19,7 @@ class Robot
 {
 private:
     market m;
+    char *nick;
     int raw;
     int prod;
     int money;
@@ -33,16 +34,16 @@ private:
 
     void parse(int *params[], int params_num);
 
-    char *parse_str(int& i);
+    char *parse_str(char **start, int& i);
 
 public:
-    Robot(char* ip_addr, char *port);
+    Robot(char *nickname, char* ip_addr, char *port);
 
-    ~Robot() {close(sockfd);};
+    ~Robot();
 
     void join(const char *room_num);
 
-    void create();
+    void create(char *players);
 
     void wait_for_start();
 
