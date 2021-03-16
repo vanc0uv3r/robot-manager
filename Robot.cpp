@@ -2,7 +2,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-Robot::Robot(char *ip_addr, char *port)
+Robot::Robot(char *nickname, char *ip_addr, char *port)
 {
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
@@ -13,9 +13,19 @@ Robot::Robot(char *ip_addr, char *port)
         exit_with_perror(invalid_ip);
     if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)))
         exit_with_perror(connect_error);
-    snd_server_msg("robot\n");
+    nick = (char *)malloc(strlen(nickname) * sizeof(*nick) + 1);
+    strncpy(nick, nickname, strlen(nickname) + 1);
+    rcv_server_msg();
+    snd_server_msg(nickname);
+    snd_server_msg("\n");
     rcv_server_msg();
     print_buffer();
+}
+
+Robot::~Robot()
+{
+    free(nick);
+    close(sockfd);
 }
 
 void Robot::join(const char *room_num)
@@ -23,15 +33,27 @@ void Robot::join(const char *room_num)
     snd_server_msg(".join ");
     snd_server_msg(room_num);
     snd_server_msg("\n");
-    rcv_server_msg();
-    print_buffer();
+    wait_for_start();
 }
 
-void Robot::create()
+void Robot::create(char *players)
 {
+    int now_players = 1, max_players = str_to_int(players);
     snd_server_msg(".create\n");
     rcv_server_msg();
-    print_buffer();
+    printf("Waiting now for %d\n", max_players - now_players);
+    while (now_players < max_players)
+    {
+        rcv_server_msg();
+        if (strstr(buffer, "JOIN"))
+        {
+            now_players++;
+            printf("Waiting now for %d\n", max_players - now_players);
+        }
+    }
+    printf("Everyone is present\n");
+    snd_server_msg("start\n");
+    rcv_server_msg();
 }
 
 void Robot::rcv_server_msg()
@@ -47,17 +69,17 @@ void Robot::rcv_server_msg()
     buffer[rc] = '\0';
 }
 
-char *Robot::parse_str(int &i)
+char *Robot::parse_str(char **start, int &i)
 {
     int j = 0;
     char *num = (char *)malloc(13);
-    while (buffer[i] > '9' || buffer[i] < '0')
-        i++;
-    while (buffer[i] != ' ' && buffer[i] != '\n')
+    while (**start > '9' || **start < '0')
+        (*start)++;
+    while (**start != ' ' && **start != '\n')
     {
-        num[j] = buffer[i];
+        num[j] = **start;
         j++;
-        i++;
+        (*start)++;
     }
     num[j] = '\0';
     return num;
@@ -66,9 +88,12 @@ char *Robot::parse_str(int &i)
 void Robot::parse(int **params, int params_num)
 {
     int k, i = 0;
+    char *start = strstr(buffer, nick);
+    if (start == NULL)
+        start = buffer;
     for (k = 0; k < params_num; ++k)
     {
-        char *num = parse_str(i);
+        char *num = parse_str(&start, i);
         *params[k] = str_to_int(num);
     }
 }
@@ -103,14 +128,14 @@ void Robot::make_prod()
         snd_server_msg("prod ");
         snd_server_msg(int_to_str(raw));
         snd_server_msg("\n");
-        printf("Making %d prod...\n", raw);
+        printf("Making %d prod...\n\n", raw);
         rcv_server_msg();
     }
 }
 
 void Robot::me()
 {
-    printf("INFORMATION about me:\n");
+    printf("INFORMATION about me (%s):\n", nick);
     printf("My BALANCE is %d$\n", money);
     printf("I have %d RAWS\n", raw);
     printf("I have %d PROD\n", prod);
