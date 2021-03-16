@@ -27,9 +27,11 @@ int check_params_num(int argc);
 
 int check_params(int argc, char *argv[]);
 
-int check_join(int argc, char *argv[]);
+int check_join(char *argv[]);
 
-int check_create(int argc, char *argv[]);
+int check_create(char *argv[]);
+
+int check_nickname(char *nickname);
 
 char *reverse_str(char *str);
 
