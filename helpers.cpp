@@ -70,9 +70,9 @@ int check_params(int argc, char *argv[])
         printf("%s %s\n", invalid_params_num, usage);
         return quit;
     }
-    else if (check_nickname(argv[1]))
+    else if (check_nickname(argv[3]))
     {
-        printf("%s %s\n", invalid_params_num, usage);
+        printf("%s %s\n", invalid_params, usage);
         return quit;
     }
     else if (check_join(argv))
