@@ -20,7 +20,6 @@ void play(Robot& r)
         r.wait_other();
         round++;
     }
-    r.define_winner();
 }
 
 int main(int argc, char *argv[])
