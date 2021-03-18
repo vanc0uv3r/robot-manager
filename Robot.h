@@ -20,24 +20,34 @@ class Robot
 private:
     market m;
     char *nick;
+    char *ip;
+    int port;
     int raw;
     int prod;
     int money;
     int plants;
     int auto_plants;
     int sockfd;
-    char buffer[BUFFER_SIZE];
-
-    void snd_server_msg(const char *msg) {dprintf(sockfd, "%s", msg);}
+    int buffer_p;
+    char *buffer;
+    char *line;
 
     void rcv_server_msg();
 
-    void parse(int *params[], int params_num);
+    void parse();
 
-    char *parse_str(char **start, int& i);
+    void resize_buffer(int size);
+
+    void connect_serv();
+
+    void enter_server();
+
+    void buffer_shift(int cmd_pos);
+
+    int need_realloc(int tmp) {return buffer_p >= tmp;}
 
 public:
-    Robot(char *nickname, char* ip_addr, char *port);
+    Robot(char* serv_ip, char *serv_port, char *nickname);
 
     ~Robot();
 
@@ -51,6 +61,8 @@ public:
 
     void get_market();
 
+    int check_end();
+    
     void make_turn();
 
     void sell();
@@ -61,17 +73,13 @@ public:
 
     void me();
 
-    void parse_market();
-
-    void parse_info();
-
     void wait_other();
 
-    int no_winner() {return strstr(buffer, "WIN") == NULL;}
+    int no_winner();
 
-    void define_winner();
+    int define_winner();
 
-    void print_buffer() {printf("%s\n", buffer);}
+    void print_buffer() {printf("%s\n", line);}
 
 };
 
