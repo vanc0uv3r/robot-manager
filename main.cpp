@@ -11,16 +11,13 @@ void play(Robot& r)
     {
         printf("ROUND %d:\n\n", round);
         r.get_info();
-        r.parse_info();
         r.get_market();
-        r.parse_market();
         r.me();
         r.sell();
         r.buy();
         r.make_prod();
         r.make_turn();
         r.wait_other();
-        r.print_buffer();
         round++;
     }
     r.define_winner();
