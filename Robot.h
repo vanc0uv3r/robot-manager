@@ -7,7 +7,7 @@
 #include "stdlib.h"
 #include "string.h"
 
-struct market
+struct market_info
 {
     int raw;
     int min_price;
@@ -15,28 +15,35 @@ struct market
     int max_price;
 };
 
+struct service
+{
+    char *ip;
+    int port;
+    int sockfd;
+};
+
 class Robot
 {
 private:
-    market m;
+    market_info market;
+    service s;
     char *nick;
-    char *ip;
-    int port;
+    char *buffer;
+    char *line;
     int raw;
     int prod;
     int money;
     int plants;
     int auto_plants;
-    int sockfd;
     int buffer_p;
-    char *buffer;
-    char *line;
-
+    int buffer_size;
     void rcv_server_msg();
 
     void parse();
 
-    void resize_buffer(int size);
+    void resize_buffer();
+
+    void resize_line();
 
     void connect_serv();
 
@@ -44,7 +51,7 @@ private:
 
     void buffer_shift(int cmd_pos);
 
-    int need_realloc(int tmp) {return buffer_p >= tmp;}
+    int need_realloc() {return buffer_size - buffer_p < read_size;}
 
 public:
     Robot(char* serv_ip, char *serv_port, char *nickname);
