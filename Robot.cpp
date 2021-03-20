@@ -2,97 +2,155 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-Robot::Robot(char *ip_addr, char *port)
+Robot::Robot(char *serv_ip, char *serv_port, char *nickname)
+{
+    s.ip = serv_ip;
+    s.port = str_to_int(serv_port);
+    nick = nickname;
+    buffer_p = 0;
+    buffer_size = 128;
+    buffer = (char *)malloc(buffer_size * sizeof(*buffer));
+    line = (char *)malloc(buffer_size * sizeof(*buffer));
+    connect_serv();
+    enter_server();
+}
+
+void Robot::connect_serv()
 {
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(str_to_int(port));
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    addr.sin_port = htons(s.port);
+    if ((s.sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
         exit_with_perror(sock_error);
-    if (!inet_aton(ip_addr, &(addr.sin_addr)))
+    if (!inet_aton(s.ip, &(addr.sin_addr)))
         exit_with_perror(invalid_ip);
-    if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)))
+    if (connect(s.sockfd, (struct sockaddr *) &addr, sizeof(addr)))
         exit_with_perror(connect_error);
-    snd_server_msg("robot\n");
+}
+
+void Robot::enter_server()
+{
+    dprintf(s.sockfd, "%s\n", nick);
     rcv_server_msg();
-    print_buffer();
+    rcv_server_msg();
+}
+
+Robot::~Robot()
+{
+    free(buffer);
+    free(line);
+    close(s.sockfd);
 }
 
 void Robot::join(const char *room_num)
 {
-    snd_server_msg(".join ");
-    snd_server_msg(room_num);
-    snd_server_msg("\n");
-    rcv_server_msg();
-    print_buffer();
+    dprintf(s.sockfd, ".join %s\n", room_num);
+    wait_for_start();
 }
 
-void Robot::create()
+void Robot::create(char *players)
 {
-    snd_server_msg(".create\n");
+    int now_players = 0, max_players = str_to_int(players);
+    dprintf(s.sockfd, ".create\n");
     rcv_server_msg();
-    print_buffer();
+    while (now_players < max_players)
+    {
+        rcv_server_msg();
+        if (strstr(line, "JOIN"))
+        {
+            now_players++;
+            if (now_players < max_players)
+                printf("Waiting now for %d\n", max_players - now_players);
+        }
+    }
+    rcv_server_msg();
+    printf("Everyone is present\n");
+    dprintf(s.sockfd, "start\n");
+    rcv_server_msg();
+}
+
+int Robot::check_end()
+{
+    for (int i = 0; i < strlen(buffer); i++)
+    {
+        if (buffer[i] == '\n')
+            return i;
+    }
+    return 0;
 }
 
 void Robot::rcv_server_msg()
 {
-    int rc = read(sockfd, buffer, sizeof(buffer) - 1);
+    int rc, cmd_pos;
+    while ((cmd_pos = check_end()) == 0)
+    {
+        if (need_realloc())
+        {
+            buffer_size *= 2;
+            resize_buffer();
+            resize_line();
+        }
+        rc = read(s.sockfd, buffer + buffer_p * sizeof(*buffer), read_size - 1);
+        check_read(rc);
+        buffer_p += rc;
+        buffer[buffer_p] = '\0';
+    }
+    strncpy(line, buffer, cmd_pos);
+    line[cmd_pos] = '\0';
+    buffer_shift(cmd_pos);
+    buffer_p = strlen(buffer);
+}
+
+void Robot::check_read(int rc)
+{
     if (rc == -1)
+    {
         perror("Read error: ");
+        exit(1);
+    }
     else if (rc == 0)
     {
         printf("%s\n", server_dis);
         exit(0);
     }
-    buffer[rc] = '\0';
 }
 
-char *Robot::parse_str(int &i)
+void Robot::buffer_shift(int cmd_pos)
 {
-    int j = 0;
-    char *num = (char *)malloc(13);
-    while (buffer[i] > '9' || buffer[i] < '0')
-        i++;
-    while (buffer[i] != ' ' && buffer[i] != '\n')
+    for (int i = 0; i < buffer_p; ++i)
     {
-        num[j] = buffer[i];
-        j++;
-        i++;
+        if (i < buffer_p - cmd_pos + 1)
+            buffer[i] = buffer[i + cmd_pos + 1];
+        else
+            buffer[i] = '\0';
     }
-    num[j] = '\0';
-    return num;
 }
 
-void Robot::parse(int **params, int params_num)
+void Robot::parse()
 {
-    int k, i = 0;
-    for (k = 0; k < params_num; ++k)
-    {
-        char *num = parse_str(i);
-        *params[k] = str_to_int(num);
-    }
+    char r1, r2[7], r3[32];
+    if (strstr(line, nick))
+        sscanf(line, "%c%s%s%d%d%d%d%d", &r1, r2, r3, &raw, &prod, &money,
+               &plants, &auto_plants);
+    else if (strstr(line, "MARKET"))
+        sscanf(line, "%c%s%d%d%d%d", &r1, r2, &market.raw, &market.min_price,
+               &market.prod, &market.max_price);
 }
 
 void Robot::sell()
 {
     if (prod > 0)
     {
-        snd_server_msg("sell ");
-        snd_server_msg(int_to_str(prod));
-        snd_server_msg(" ");
-        snd_server_msg(int_to_str(m.max_price));
-        snd_server_msg("\n");
-        printf("Selling %d prods now with price %d\n", prod, m.max_price);
+        dprintf(s.sockfd, "sell %d %d\n", prod, market.max_price);
+        printf("Selling %d prods now with price %d\n", prod, market.max_price);
         rcv_server_msg();
     }
 }
 
 void Robot::buy()
 {
-    snd_server_msg("buy 2 ");
-    snd_server_msg(int_to_str(m.min_price));
-    snd_server_msg("\n");
-    printf("Try to buy 2 raws which costs %d\n", m.min_price);
+    dprintf(s.sockfd, "buy 2 %d\n", market.min_price);
+    printf("Try to buy 2 raws which costs %d\n", market.min_price);
     rcv_server_msg();
 }
 
@@ -100,17 +158,15 @@ void Robot::make_prod()
 {
     if (raw > 0 && raw < 3)
     {
-        snd_server_msg("prod ");
-        snd_server_msg(int_to_str(raw));
-        snd_server_msg("\n");
-        printf("Making %d prod...\n", raw);
+        dprintf(s.sockfd, "prod %d\n", raw);
+        printf("Making %d prod...\n\n", raw);
         rcv_server_msg();
     }
 }
 
 void Robot::me()
 {
-    printf("INFORMATION about me:\n");
+    printf("INFORMATION about me (%s):\n", nick);
     printf("My BALANCE is %d$\n", money);
     printf("I have %d RAWS\n", raw);
     printf("I have %d PROD\n", prod);
@@ -118,50 +174,85 @@ void Robot::me()
 
 void Robot::wait_other()
 {
-    while (strstr(buffer, "Trading") == NULL)
+    while (strstr(line, "ENDTURN") == NULL)
         rcv_server_msg();
-}
-
-void Robot::parse_info()
-{
-    int *fields[5] = {&raw, &prod, &money, &plants, &auto_plants};
-    parse(fields, 5);
-}
-
-void Robot::parse_market()
-{
-    int *fields[4] = {&m.raw, &m.min_price, &m.prod, &m.max_price};
-    parse(fields, 4);
 }
 
 void Robot::make_turn()
 {
-    snd_server_msg("turn\n");
+    dprintf(s.sockfd, "turn\n");
     rcv_server_msg();
 }
 
 void Robot::get_market()
 {
-    snd_server_msg("market\n");
+    dprintf(s.sockfd, "market\n");
+    rcv_server_msg();
+    while (strstr(line, "-----"))
+        rcv_server_msg();
+    parse();
     rcv_server_msg();
 }
 
 void Robot::get_info()
 {
-    snd_server_msg("info\n");
+    dprintf(s.sockfd, "info\n");
+    rcv_server_msg();
+    while (strstr(line, "-----"))
+        rcv_server_msg();
+    while (strstr(line, "INFO"))
+    {
+        parse();
+        rcv_server_msg();
+    }
+    rcv_server_msg();
     rcv_server_msg();
 }
 
 void Robot::wait_for_start()
 {
-    while (strstr(buffer, "START") == NULL)
+    rcv_server_msg();
+    while (strstr(line, "START") == NULL)
         rcv_server_msg();
 }
 
-void Robot::define_winner()
+int Robot::define_winner()
 {
-    if (strstr(buffer, "YOU_WIN") != NULL)
-        printf("YOO! I win!\n");
-    else
-        printf("DAMN! I lose :((\n");
+    if (strstr(line, "WIN") != NULL)
+    {
+        if (strstr(line, "YOU_WIN"))
+            printf("YOO! I win!\n");
+        else
+            printf("DAMN! I lose :((\n");
+        return 1;
+    }
+    return 0;
+}
+
+int Robot::no_winner()
+{
+    dprintf(s.sockfd, "?\n");
+    rcv_server_msg();
+    while ((strstr(line, "game is over") == NULL) && (strstr(line, "# Requested")) == NULL)
+    {
+        if (define_winner())
+            return 0;
+        rcv_server_msg();
+    }
+    return strstr(line, "game is over") == NULL;
+}
+
+void Robot::resize_buffer()
+{
+    char *tmp = (char *)malloc(buffer_size * sizeof(*tmp));
+    strcpy(tmp, buffer);
+    free(buffer);
+    buffer = tmp;
+}
+
+void Robot::resize_line()
+{
+    char *tmp = (char *)malloc(buffer_size * sizeof(*tmp));
+    free(line);
+    line = tmp;
 }

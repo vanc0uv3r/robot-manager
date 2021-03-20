@@ -7,7 +7,7 @@
 #include "stdlib.h"
 #include "string.h"
 
-struct market
+struct market_info
 {
     int raw;
     int min_price;
@@ -15,34 +15,52 @@ struct market
     int max_price;
 };
 
+struct service
+{
+    char *ip;
+    int port;
+    int sockfd;
+};
+
 class Robot
 {
 private:
-    market m;
+    market_info market;
+    service s;
+    char *nick;
+    char *buffer;
+    char *line;
     int raw;
     int prod;
     int money;
     int plants;
     int auto_plants;
-    int sockfd;
-    char buffer[BUFFER_SIZE];
-
-    void snd_server_msg(const char *msg) {dprintf(sockfd, "%s", msg);}
-
+    int buffer_p;
+    int buffer_size;
     void rcv_server_msg();
 
-    void parse(int *params[], int params_num);
+    void parse();
 
-    char *parse_str(int& i);
+    void resize_buffer();
+
+    void resize_line();
+
+    void connect_serv();
+
+    void enter_server();
+
+    void buffer_shift(int cmd_pos);
+
+    int need_realloc() {return buffer_size - buffer_p < read_size;}
 
 public:
-    Robot(char* ip_addr, char *port);
+    Robot(char* serv_ip, char *serv_port, char *nickname);
 
-    ~Robot() {close(sockfd);};
+    ~Robot();
 
     void join(const char *room_num);
 
-    void create();
+    void create(char *players);
 
     void wait_for_start();
 
@@ -50,6 +68,8 @@ public:
 
     void get_market();
 
+    int check_end();
+    
     void make_turn();
 
     void sell();
@@ -58,19 +78,17 @@ public:
 
     void make_prod();
 
+    void check_read(int rc);
+
     void me();
-
-    void parse_market();
-
-    void parse_info();
 
     void wait_other();
 
-    int no_winner() {return strstr(buffer, "WIN") == NULL;}
+    int no_winner();
 
-    void define_winner();
+    int define_winner();
 
-    void print_buffer() {printf("%s\n", buffer);}
+    void print_buffer() {printf("%s\n", line);}
 
 };
 

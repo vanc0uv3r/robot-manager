@@ -23,13 +23,14 @@ char *int_to_str(int num)
     int i = 0;
     if (num < 0)
         return NULL;
-    s = (char *)malloc(STR_INT_SIZE * sizeof(*s));
+    s = (char *)malloc(STR_INT_SIZE * sizeof(*s) + 1);
     while (num != 0)
     {
         s[i] = '0' + (num % 10);
         num /= 10;
         i++;
     }
+    s[i] = '\0';
     return reverse_str(s);
 }
 
@@ -59,7 +60,7 @@ void exit_with_perror(const char buffer[])
 
 int check_params_num(int argc)
 {
-    return argc < 4 || argc > 5;
+    return argc != 6;
 }
 
 int check_params(int argc, char *argv[])
@@ -69,20 +70,31 @@ int check_params(int argc, char *argv[])
         printf("%s %s\n", invalid_params_num, usage);
         return quit;
     }
-    else if (check_join(argc, argv))
+    else if (check_nickname(argv[3]))
+    {
+        printf("%s %s\n", invalid_params, usage);
+        return quit;
+    }
+    else if (check_join(argv))
         return join;
-    else if (check_create(argc, argv))
+    else if (check_create(argv))
         return create;
     return quit;
 }
 
-int check_join(int argc, char *argv[])
+int check_join(char *argv[])
 {
-    return (argc == 5) && (strcmp(argv[3], "join") == 0)
-    && (str_to_int(argv[4]) != -1);
+    return (strcmp(argv[4], "join") == 0)
+    && (str_to_int(argv[5]) != -1);
 }
 
-int check_create(int argc, char *argv[])
+int check_create(char *argv[])
 {
-    return (argc == 4) && (strcmp(argv[3], "create") == 0);
+    return (strcmp(argv[4], "create") == 0)
+    && (str_to_int(argv[5]) != -1);
+}
+
+int check_nickname(char *nickname)
+{
+    return strlen(nickname) > 16;
 }
