@@ -84,13 +84,7 @@ void Robot::rcv_server_msg()
     while ((cmd_pos = check_end()) == 0)
     {
         rc = read(sockfd, buffer + buffer_p * sizeof(*buffer), 32);
-        if (rc == -1)
-            perror("Read error: ");
-        else if (rc == 0)
-        {
-            printf("%s\n", server_dis);
-            exit(0);
-        }
+        check_read(rc);
         buffer_p += rc;
         buffer[buffer_p] = '\0';
         //TODO buffer size check
@@ -99,6 +93,20 @@ void Robot::rcv_server_msg()
     line[cmd_pos] = '\0';
     buffer_shift(cmd_pos);
     buffer_p = strlen(buffer);
+}
+
+void Robot::check_read(int rc)
+{
+    if (rc == -1)
+    {
+        perror("Read error: ");
+        exit(1);
+    }
+    else if (rc == 0)
+    {
+        printf("%s\n", server_dis);
+        exit(0);
+    }
 }
 
 void Robot::buffer_shift(int cmd_pos)
@@ -219,8 +227,7 @@ int Robot::no_winner()
 {
     dprintf(sockfd, "?\n");
     rcv_server_msg();
-    while ((strstr(line, "game is over") == NULL) && (strstr(line,
-                                                             "# Requested")) == NULL)
+    while ((strstr(line, "game is over") == NULL) && (strstr(line, "# Requested")) == NULL)
     {
         if (define_winner())
             return 0;

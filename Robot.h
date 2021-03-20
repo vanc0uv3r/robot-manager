@@ -71,6 +71,8 @@ public:
 
     void make_prod();
 
+    void check_read(int rc);
+
     void me();
 
     void wait_other();
