@@ -9,7 +9,7 @@ enum next_action {
     quit
 };
 
-const int init_buff_size = 128;
+const int read_size = 32;
 const char sock_error[] = "Socket problem";
 const char invalid_params_num[] = "Invalid number of params.";
 const char invalid_params[] = "Invalid params.";
