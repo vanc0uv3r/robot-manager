@@ -13,6 +13,7 @@ void play(Robot& r)
         r.get_info();
         r.get_market();
         r.me();
+        r.get_competitors();
         r.sell();
         r.buy();
         r.make_prod();

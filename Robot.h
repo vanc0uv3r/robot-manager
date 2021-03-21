@@ -6,6 +6,7 @@
 #include "unistd.h"
 #include "stdlib.h"
 #include "string.h"
+#include "Competitor.h"
 
 struct market_info
 {
@@ -15,28 +16,41 @@ struct market_info
     int max_price;
 };
 
-struct service
+struct service_info
 {
     char *ip;
     int port;
     int sockfd;
 };
 
-class Robot
+struct resources
 {
-private:
-    market_info market;
-    service s;
-    char *nick;
-    char *buffer;
-    char *line;
     int raw;
     int prod;
     int money;
     int plants;
     int auto_plants;
+};
+
+struct object_list
+{
+    Competitor *c;
+    object_list *next;
+};
+
+class Robot
+{
+private:
+    market_info market;
+    service_info s;
+    resources own;
+    object_list *competitors;
+    char *nick;
+    char *buffer;
+    char *line;
     int buffer_p;
     int buffer_size;
+
     void rcv_server_msg();
 
     void parse();
@@ -51,7 +65,15 @@ private:
 
     void buffer_shift(int cmd_pos);
 
+    void update_competitor();
+
+    void add_competitor(object_list **l);
+
+    void clear_competitors();
+
     int need_realloc() {return buffer_size - buffer_p < read_size;}
+
+    int look_for_winner();
 
 public:
     Robot(char* serv_ip, char *serv_port, char *nickname);
@@ -83,6 +105,8 @@ public:
     void me();
 
     void wait_other();
+
+    void get_competitors();
 
     int no_winner();
 
