@@ -53,6 +53,8 @@ private:
 
     int need_realloc() {return buffer_size - buffer_p < read_size;}
 
+    int look_for_winner();
+
 public:
     Robot(char* serv_ip, char *serv_port, char *nickname);
 

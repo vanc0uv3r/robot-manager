@@ -233,13 +233,13 @@ int Robot::no_winner()
 {
     dprintf(s.sockfd, "?\n");
     rcv_server_msg();
-    while ((strstr(line, "game is over") == NULL) && (strstr(line, "# Requested")) == NULL)
+    while (look_for_winner())
     {
         if (define_winner())
             return 0;
         rcv_server_msg();
     }
-    return strstr(line, "game is over") == NULL;
+    return 1;
 }
 
 void Robot::resize_buffer()
@@ -255,4 +255,10 @@ void Robot::resize_line()
     char *tmp = (char *)malloc(buffer_size * sizeof(*tmp));
     free(line);
     line = tmp;
+}
+
+int Robot::look_for_winner()
+{
+    return (strstr(line, "game is over") == NULL)
+    && (strstr(line, "# Requested")) == NULL;
 }
