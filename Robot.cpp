@@ -1,6 +1,7 @@
 #include "Robot.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include "Competitor.h"
 
 Robot::Robot(char *serv_ip, char *serv_port, char *nickname)
 {
@@ -9,6 +10,7 @@ Robot::Robot(char *serv_ip, char *serv_port, char *nickname)
     nick = nickname;
     buffer_p = 0;
     buffer_size = 128;
+    competitors = NULL;
     buffer = (char *)malloc(buffer_size * sizeof(*buffer));
     line = (char *)malloc(buffer_size * sizeof(*buffer));
     connect_serv();
@@ -39,6 +41,7 @@ Robot::~Robot()
 {
     free(buffer);
     free(line);
+    clear_competitors();
     close(s.sockfd);
 }
 
@@ -126,23 +129,68 @@ void Robot::buffer_shift(int cmd_pos)
     }
 }
 
+void Robot::update_competitor()
+{
+    bool updated = 0;
+    object_list *p = competitors;
+    while (p != NULL && !updated)
+    {
+        if (strstr(line, p->c->get_nick()))
+        {
+            p->c->update_fields(line);
+            updated = 1;
+        }
+        p = p->next;
+    }
+    if (!updated)
+        add_competitor(&competitors);
+}
+
+void Robot::add_competitor(object_list **l)
+{
+    if (*l == NULL)
+    {
+        *l = (object_list *)malloc(sizeof(*l));
+        (*l)->c = new Competitor();
+        (*l)->c->update_fields(line);
+        (*l)->next = NULL;
+    }
+    else
+        add_competitor(&((*l)->next));
+}
+
+void Robot::clear_competitors()
+{
+    object_list *p;
+    while (competitors != NULL)
+    {
+        p = competitors;
+        competitors = competitors->next;
+        delete p->c;
+        free(p);
+    }
+}
+
 void Robot::parse()
 {
     char r1, r2[7], r3[32];
     if (strstr(line, nick))
-        sscanf(line, "%c%s%s%d%d%d%d%d", &r1, r2, r3, &raw, &prod, &money,
-               &plants, &auto_plants);
+        sscanf(line, "%c%s%s%d%d%d%d%d", &r1, r2, r3, &own.raw, &own.prod,
+               &own.money, &own.plants, &own.auto_plants);
     else if (strstr(line, "MARKET"))
         sscanf(line, "%c%s%d%d%d%d", &r1, r2, &market.raw, &market.min_price,
                &market.prod, &market.max_price);
+    else if (strstr(line, "INFO"))
+        update_competitor();
 }
 
 void Robot::sell()
 {
-    if (prod > 0)
+    if (own.prod > 0)
     {
-        dprintf(s.sockfd, "sell %d %d\n", prod, market.max_price);
-        printf("Selling %d prods now with price %d\n", prod, market.max_price);
+        dprintf(s.sockfd, "sell %d %d\n", own.prod, market.max_price);
+        printf("Selling %d prods now with price %d\n", own.prod,
+               market.max_price);
         rcv_server_msg();
     }
 }
@@ -156,10 +204,10 @@ void Robot::buy()
 
 void Robot::make_prod()
 {
-    if (raw > 0 && raw < 3)
+    if (own.raw > 0 && own.raw < 3)
     {
-        dprintf(s.sockfd, "prod %d\n", raw);
-        printf("Making %d prod...\n\n", raw);
+        dprintf(s.sockfd, "prod %d\n", own.raw);
+        printf("Making %d prod...\n\n", own.raw);
         rcv_server_msg();
     }
 }
@@ -167,9 +215,19 @@ void Robot::make_prod()
 void Robot::me()
 {
     printf("INFORMATION about me (%s):\n", nick);
-    printf("My BALANCE is %d$\n", money);
-    printf("I have %d RAWS\n", raw);
-    printf("I have %d PROD\n", prod);
+    printf("My BALANCE is %d$\n", own.money);
+    printf("I have %d RAWS\n", own.raw);
+    printf("I have %d PROD\n\n", own.prod);
+}
+
+void Robot::get_competitors()
+{
+    object_list *p = competitors;
+    while (p != NULL)
+    {
+        p->c->print_fields();
+        p = p->next;
+    }
 }
 
 void Robot::wait_other()
