@@ -11,8 +11,8 @@ Robot::Robot(char *serv_ip, char *serv_port, char *nickname)
     buffer_p = 0;
     buffer_size = 128;
     competitors = NULL;
-    buffer = (char *)malloc(buffer_size * sizeof(*buffer));
-    line = (char *)malloc(buffer_size * sizeof(*buffer));
+    buffer = new char[buffer_size];
+    line = new char [buffer_size];
     connect_serv();
     enter_server();
 }
@@ -39,8 +39,8 @@ void Robot::enter_server()
 
 Robot::~Robot()
 {
-    free(buffer);
-    free(line);
+    delete[] buffer;
+    delete[] line;
     clear_competitors();
     close(s.sockfd);
 }
@@ -93,7 +93,7 @@ void Robot::rcv_server_msg()
             resize_buffer();
             resize_line();
         }
-        rc = read(s.sockfd, buffer + buffer_p * sizeof(*buffer), read_size - 1);
+        rc = read(s.sockfd, buffer + buffer_p, read_size - 1);
         check_read(rc);
         buffer_p += rc;
         buffer[buffer_p] = '\0';
@@ -150,7 +150,7 @@ void Robot::add_competitor(object_list **l)
 {
     if (*l == NULL)
     {
-        *l = (object_list *)malloc(sizeof(*l));
+        *l = new object_list;
         (*l)->c = new Competitor();
         (*l)->c->update_fields(line);
         (*l)->next = NULL;
@@ -167,7 +167,7 @@ void Robot::clear_competitors()
         p = competitors;
         competitors = competitors->next;
         delete p->c;
-        free(p);
+        delete p; 
     }
 }
 
@@ -178,8 +178,8 @@ void Robot::parse()
         sscanf(line, "%c%s%s%d%d%d%d%d", &r1, r2, r3, &own.raw, &own.prod,
                &own.money, &own.plants, &own.auto_plants);
     else if (strstr(line, "MARKET"))
-        sscanf(line, "%c%s%d%d%d%d", &r1, r2, &market.raw, &market.min_price,
-               &market.prod, &market.max_price);
+        sscanf(line, "%c%s%d%d%d%d", &r1, r2, &market.raw, 
+                &market.min_price, &market.prod, &market.max_price);
     else if (strstr(line, "INFO"))
         update_competitor();
 }
@@ -302,16 +302,16 @@ int Robot::no_winner()
 
 void Robot::resize_buffer()
 {
-    char *tmp = (char *)malloc(buffer_size * sizeof(*tmp));
+    char *tmp = new char[buffer_size];
     strcpy(tmp, buffer);
-    free(buffer);
+    delete[] buffer;
     buffer = tmp;
 }
 
 void Robot::resize_line()
 {
-    char *tmp = (char *)malloc(buffer_size * sizeof(*tmp));
-    free(line);
+    char *tmp = new char[buffer_size];
+    delete[] line;
     line = tmp;
 }
 
