@@ -4,9 +4,9 @@
 void Competitor::print_fields()
 {
     printf("INFORMATION about (%s):\n", nick);
-    printf("His BALANCE is %d$\n", money);
-    printf("He has %d RAWS\n", raw);
-    printf("He has %d PROD\n\n", prod);
+    printf("It's BALANCE is %d$\n", money);
+    printf("It has %d RAWS\n", raw);
+    printf("It has %d PROD\n\n", prod);
 }
 
 void Competitor::update_fields(char *line)
