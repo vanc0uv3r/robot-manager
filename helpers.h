@@ -1,6 +1,7 @@
 #ifndef ROBOT_MANAGER_HELPERS_H
 #define ROBOT_MANAGER_HELPERS_H
 
+#define snd_buff_size 100
 
 enum next_action {
     join,

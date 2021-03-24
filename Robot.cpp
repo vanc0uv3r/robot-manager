@@ -32,7 +32,10 @@ void Robot::connect_serv()
 
 void Robot::enter_server()
 {
-    dprintf(s.sockfd, "%s\n", nick);
+    int buff_size;
+    char snd_buff[snd_buff_size];
+    buff_size = snprintf(snd_buff, snd_buff_size, "%s\n", nick);
+    snd_serv(snd_buff, buff_size);
     rcv_server_msg();
     rcv_server_msg();
 }
@@ -46,15 +49,21 @@ Robot::~Robot()
 }
 
 void Robot::join(const char *room_num)
-{
-    dprintf(s.sockfd, ".join %s\n", room_num);
+{  
+    int buff_size;
+    char snd_buff[snd_buff_size];
+    buff_size = snprintf(snd_buff, snd_buff_size, ".join %s\n", room_num);
+    snd_serv(snd_buff, buff_size); 
     wait_for_start();
 }
 
 void Robot::create(char *players)
 {
     int now_players = 0, max_players = str_to_int(players);
-    dprintf(s.sockfd, ".create\n");
+    int buff_size;
+    char snd_buff[snd_buff_size];
+    buff_size = snprintf(snd_buff, snd_buff_size, ".create\n");
+    snd_serv(snd_buff, buff_size); 
     rcv_server_msg();
     while (now_players < max_players)
     {
@@ -68,7 +77,8 @@ void Robot::create(char *players)
     }
     rcv_server_msg();
     printf("Everyone is present\n");
-    dprintf(s.sockfd, "start\n");
+    buff_size = snprintf(snd_buff, snd_buff_size, "start\n", nick);
+    snd_serv(snd_buff, buff_size);
     rcv_server_msg();
 }
 
@@ -184,11 +194,20 @@ void Robot::parse()
         update_competitor();
 }
 
+void Robot::snd_serv(char *snd_buff, int size)
+{
+    write(s.sockfd, snd_buff, size);
+}
+
 void Robot::sell()
 {
+    int buff_size;
+    char snd_buff[snd_buff_size];
     if (own.prod > 0)
     {
-        dprintf(s.sockfd, "sell %d %d\n", own.prod, market.max_price);
+        buff_size = snprintf(snd_buff, snd_buff_size, "sell %d %d\n",
+                own.prod, market.max_price);
+        snd_serv(snd_buff, buff_size);
         printf("Selling %d prods now with price %d\n", own.prod,
                market.max_price);
         rcv_server_msg();
@@ -197,16 +216,23 @@ void Robot::sell()
 
 void Robot::buy()
 {
-    dprintf(s.sockfd, "buy 2 %d\n", market.min_price);
+    int buff_size;
+    char snd_buff[snd_buff_size];
+    buff_size = snprintf(snd_buff, snd_buff_size, "buy 2 %d\n", 
+            market.min_price);
+    snd_serv(snd_buff, buff_size);
     printf("Try to buy 2 raws which costs %d\n", market.min_price);
     rcv_server_msg();
 }
 
 void Robot::make_prod()
 {
+    int buff_size;
+    char snd_buff[snd_buff_size];
     if (own.raw > 0 && own.raw < 3)
     {
-        dprintf(s.sockfd, "prod %d\n", own.raw);
+        buff_size = snprintf(snd_buff, snd_buff_size, "prod %d\n", own.raw);
+        snd_serv(snd_buff, buff_size);
         printf("Making %d prod...\n\n", own.raw);
         rcv_server_msg();
     }
@@ -238,13 +264,19 @@ void Robot::wait_other()
 
 void Robot::make_turn()
 {
-    dprintf(s.sockfd, "turn\n");
+    int buff_size;
+    char snd_buff[snd_buff_size];
+    buff_size = snprintf(snd_buff, snd_buff_size, "turn\n");
+    snd_serv(snd_buff, buff_size);
     rcv_server_msg();
 }
 
 void Robot::get_market()
 {
-    dprintf(s.sockfd, "market\n");
+    int buff_size;
+    char snd_buff[snd_buff_size];
+    buff_size = snprintf(snd_buff, snd_buff_size, "market\n");
+    snd_serv(snd_buff, buff_size);
     rcv_server_msg();
     while (strstr(line, "-----"))
         rcv_server_msg();
@@ -254,7 +286,10 @@ void Robot::get_market()
 
 void Robot::get_info()
 {
-    dprintf(s.sockfd, "info\n");
+    int buff_size;
+    char snd_buff[snd_buff_size];
+    buff_size = snprintf(snd_buff, snd_buff_size, "info\n");
+    snd_serv(snd_buff, buff_size);
     rcv_server_msg();
     while (strstr(line, "-----"))
         rcv_server_msg();
@@ -289,7 +324,10 @@ int Robot::define_winner()
 
 int Robot::no_winner()
 {
-    dprintf(s.sockfd, "?\n");
+    int buff_size;
+    char snd_buff[snd_buff_size];
+    buff_size = snprintf(snd_buff, snd_buff_size, "?\n");
+    snd_serv(snd_buff, buff_size);
     rcv_server_msg();
     while (look_for_winner())
     {

@@ -71,6 +71,8 @@ private:
 
     void clear_competitors();
 
+    void snd_serv(char *snd_buff, int buff_size);
+
     int need_realloc() {return buffer_size - buffer_p < read_size;}
 
     int look_for_winner();
