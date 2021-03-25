@@ -45,6 +45,7 @@ private:
     service_info s;
     resources own;
     object_list *competitors;
+    char snd_buff[snd_buff_size];
     char *nick;
     char *buffer;
     char *line;
@@ -71,7 +72,7 @@ private:
 
     void clear_competitors();
 
-    void snd_serv(char *snd_buff, int buff_size);
+    void snd_serv(int buff_size);
 
     int need_realloc() {return buffer_size - buffer_p < read_size;}
 
