@@ -11,8 +11,8 @@ Robot::Robot(char *serv_ip, char *serv_port, char *nickname)
     buffer_p = 0;
     buffer_size = 128;
     competitors = NULL;
-    buffer = (char *)malloc(buffer_size * sizeof(*buffer));
-    line = (char *)malloc(buffer_size * sizeof(*buffer));
+    buffer = new char[buffer_size];
+    line = new char [buffer_size];
     connect_serv();
     enter_server();
 }
@@ -32,29 +32,35 @@ void Robot::connect_serv()
 
 void Robot::enter_server()
 {
-    dprintf(s.sockfd, "%s\n", nick);
+    int buff_size;
+    buff_size = snprintf(snd_buff, snd_buff_size, "%s\n", nick);
+    snd_serv(buff_size);
     rcv_server_msg();
     rcv_server_msg();
 }
 
 Robot::~Robot()
 {
-    free(buffer);
-    free(line);
+    delete[] buffer;
+    delete[] line;
     clear_competitors();
     close(s.sockfd);
 }
 
 void Robot::join(const char *room_num)
-{
-    dprintf(s.sockfd, ".join %s\n", room_num);
+{  
+    int buff_size;
+    buff_size = snprintf(snd_buff, snd_buff_size, ".join %s\n", room_num);
+    snd_serv(buff_size);
     wait_for_start();
 }
 
 void Robot::create(char *players)
 {
     int now_players = 0, max_players = str_to_int(players);
-    dprintf(s.sockfd, ".create\n");
+    int buff_size;
+    buff_size = snprintf(snd_buff, snd_buff_size, ".create\n");
+    snd_serv(buff_size);
     rcv_server_msg();
     while (now_players < max_players)
     {
@@ -68,7 +74,8 @@ void Robot::create(char *players)
     }
     rcv_server_msg();
     printf("Everyone is present\n");
-    dprintf(s.sockfd, "start\n");
+    buff_size = snprintf(snd_buff, snd_buff_size, "start\n");
+    snd_serv(buff_size);
     rcv_server_msg();
 }
 
@@ -93,7 +100,7 @@ void Robot::rcv_server_msg()
             resize_buffer();
             resize_line();
         }
-        rc = read(s.sockfd, buffer + buffer_p * sizeof(*buffer), read_size - 1);
+        rc = read(s.sockfd, buffer + buffer_p, read_size - 1);
         check_read(rc);
         buffer_p += rc;
         buffer[buffer_p] = '\0';
@@ -150,7 +157,7 @@ void Robot::add_competitor(object_list **l)
 {
     if (*l == NULL)
     {
-        *l = (object_list *)malloc(sizeof(*l));
+        *l = new object_list;
         (*l)->c = new Competitor();
         (*l)->c->update_fields(line);
         (*l)->next = NULL;
@@ -167,7 +174,7 @@ void Robot::clear_competitors()
         p = competitors;
         competitors = competitors->next;
         delete p->c;
-        free(p);
+        delete p; 
     }
 }
 
@@ -178,17 +185,25 @@ void Robot::parse()
         sscanf(line, "%c%s%s%d%d%d%d%d", &r1, r2, r3, &own.raw, &own.prod,
                &own.money, &own.plants, &own.auto_plants);
     else if (strstr(line, "MARKET"))
-        sscanf(line, "%c%s%d%d%d%d", &r1, r2, &market.raw, &market.min_price,
-               &market.prod, &market.max_price);
+        sscanf(line, "%c%s%d%d%d%d", &r1, r2, &market.raw, 
+                &market.min_price, &market.prod, &market.max_price);
     else if (strstr(line, "INFO"))
         update_competitor();
 }
 
+void Robot::snd_serv(int size)
+{
+    write(s.sockfd, snd_buff, size);
+}
+
 void Robot::sell()
 {
+    int buff_size;
     if (own.prod > 0)
     {
-        dprintf(s.sockfd, "sell %d %d\n", own.prod, market.max_price);
+        buff_size = snprintf(snd_buff, snd_buff_size, "sell %d %d\n",
+                own.prod, market.max_price);
+        snd_serv(buff_size);
         printf("Selling %d prods now with price %d\n", own.prod,
                market.max_price);
         rcv_server_msg();
@@ -197,16 +212,21 @@ void Robot::sell()
 
 void Robot::buy()
 {
-    dprintf(s.sockfd, "buy 2 %d\n", market.min_price);
+    int buff_size;
+    buff_size = snprintf(snd_buff, snd_buff_size, "buy 2 %d\n", 
+            market.min_price);
+    snd_serv(buff_size);
     printf("Try to buy 2 raws which costs %d\n", market.min_price);
     rcv_server_msg();
 }
 
 void Robot::make_prod()
 {
+    int buff_size;
     if (own.raw > 0 && own.raw < 3)
     {
-        dprintf(s.sockfd, "prod %d\n", own.raw);
+        buff_size = snprintf(snd_buff, snd_buff_size, "prod %d\n", own.raw);
+        snd_serv(buff_size);
         printf("Making %d prod...\n\n", own.raw);
         rcv_server_msg();
     }
@@ -238,13 +258,17 @@ void Robot::wait_other()
 
 void Robot::make_turn()
 {
-    dprintf(s.sockfd, "turn\n");
+    int buff_size;
+    buff_size = snprintf(snd_buff, snd_buff_size, "turn\n");
+    snd_serv(buff_size);
     rcv_server_msg();
 }
 
 void Robot::get_market()
 {
-    dprintf(s.sockfd, "market\n");
+    int buff_size;
+    buff_size = snprintf(snd_buff, snd_buff_size, "market\n");
+    snd_serv(buff_size);
     rcv_server_msg();
     while (strstr(line, "-----"))
         rcv_server_msg();
@@ -254,7 +278,9 @@ void Robot::get_market()
 
 void Robot::get_info()
 {
-    dprintf(s.sockfd, "info\n");
+    int buff_size;
+    buff_size = snprintf(snd_buff, snd_buff_size, "info\n");
+    snd_serv(buff_size);
     rcv_server_msg();
     while (strstr(line, "-----"))
         rcv_server_msg();
@@ -289,7 +315,9 @@ int Robot::define_winner()
 
 int Robot::no_winner()
 {
-    dprintf(s.sockfd, "?\n");
+    int buff_size;
+    buff_size = snprintf(snd_buff, snd_buff_size, "?\n");
+    snd_serv(buff_size);
     rcv_server_msg();
     while (look_for_winner())
     {
@@ -302,16 +330,16 @@ int Robot::no_winner()
 
 void Robot::resize_buffer()
 {
-    char *tmp = (char *)malloc(buffer_size * sizeof(*tmp));
+    char *tmp = new char[buffer_size];
     strcpy(tmp, buffer);
-    free(buffer);
+    delete[] buffer;
     buffer = tmp;
 }
 
 void Robot::resize_line()
 {
-    char *tmp = (char *)malloc(buffer_size * sizeof(*tmp));
-    free(line);
+    char *tmp = new char[buffer_size];
+    delete[] line;
     line = tmp;
 }
 

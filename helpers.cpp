@@ -6,7 +6,7 @@
 int str_to_int(char *s)
 {
     int i, num = 0;
-    if (strlen(s) > STR_INT_SIZE)
+    if (strlen(s) > str_int_size)
         return -1;
     for (i = 0; i < strlen(s); ++i)
     {
@@ -23,7 +23,7 @@ char *int_to_str(int num)
     int i = 0;
     if (num < 0)
         return NULL;
-    s = (char *)malloc(STR_INT_SIZE * sizeof(*s) + 1);
+    s = new char[str_int_size + 1];
     while (num != 0)
     {
         s[i] = '0' + (num % 10);

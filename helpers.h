@@ -1,7 +1,7 @@
 #ifndef ROBOT_MANAGER_HELPERS_H
 #define ROBOT_MANAGER_HELPERS_H
 
-#define STR_INT_SIZE 12
+#define snd_buff_size 100
 
 enum next_action {
     join,
@@ -10,6 +10,7 @@ enum next_action {
 };
 
 const int read_size = 32;
+const int str_int_size = 12;
 const char sock_error[] = "Socket problem";
 const char invalid_params_num[] = "Invalid number of params.";
 const char invalid_params[] = "Invalid params.";

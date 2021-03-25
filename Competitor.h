@@ -14,11 +14,11 @@ class Competitor
 
 public:
     Competitor()
-    {nick = (char *) malloc(sizeof(*nick) * 32);}
+    {nick = new char [16];}
 
     char *get_nick() {return nick;}
 
-    ~Competitor() {free(nick);}
+    ~Competitor() {delete[] nick;}
 
     void update_fields(char *line);
 
