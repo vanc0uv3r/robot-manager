@@ -1,22 +1,199 @@
 #include "Lex.h"
 
-Lex::Lex(const char *filename)
+Lex::Lex()
 {
+    quote = 0;
+    lexeme_len = 0;
+    line_number = 1;
+    machine_state = none;
     buffer = new char [128];
-    fd = open(filename, O_RDONLY);
-    if (fd == -1)
+}
+
+void Lex::analyze(char c)
+{
+    if (machine_state == none || machine_state == pass)
+        define_state(c);
+    if (machine_state != none)
+        start_state(c);
+}
+
+void Lex::add_buffer(char c)
+{
+    buffer[lexeme_len] = c;
+    buffer[lexeme_len + 1] = '\0';
+    lexeme_len++;
+}
+
+void Lex::add_lexeme(char c)
+{
+    printf("lexeme: '%s', ", buffer);
+    printf("line_number: %d\n", line_number);
+    machine_state = none;
+    lexeme_len = 0;
+    if (c == '\n')
+        line_number++;
+}
+
+void Lex::start_state(char c)
+{
+    if (machine_state == num)
+        num_handle(c);
+    else if (machine_state == declaration)
+        declaration_handle(c);
+    else if (machine_state == key_word)
+        keyword_handle(c);
+    else if (machine_state == str_const)
+        str_handle(c);
+    else if (machine_state == arithmetic)
+        arithmetic_handle(c);
+    else if (machine_state == equal)
+        equation_handle(c);
+}
+
+void Lex::define_state(char c)
+{
+    if (is_end_lexeme(c))
+        machine_state = pass;
+    else if (is_numeric(c))
+        machine_state = num;
+    else if (is_alpha(c))
+        machine_state = key_word;
+    else if (is_identifier(c))
+        machine_state = declaration;
+    else if (is_quote(c))
+        machine_state = str_const;
+    else if (is_equation(c))
+        machine_state = equal;
+    else if (is_arithmetic(c))
+        machine_state = arithmetic;
+}
+
+void Lex::equation_handle(char c)
+{
+    if (c == ':' || c == '=')
     {
-        perror("file");
-        exit(1);
+        add_buffer(c);
+        if (c == '=')
+            add_lexeme(c);
     }
-    dup2(fd, 0);
-    close(fd);
+    else
+        machine_state = error;
 }
 
-int Lex::next_lexeme() {
-    return 0;
+void Lex::str_handle(char c)
+{
+    if (is_alpha(c))
+        add_buffer(c);
+    else if (is_quote(c))
+    {
+        quote = !quote;
+        if (!quote)
+            add_lexeme(c);
+    }
+    else if (!is_quote(c))
+        machine_state = error;
 }
 
-int Lex::define_lexeme_type() {
-    return 0;
+void Lex::keyword_handle(char c)
+{
+    if (is_alpha(c))
+        add_buffer(c);
+    else if (is_delimiter(c))
+    {
+        add_lexeme(c);
+        if (is_arithmetic(c))
+        {
+            add_buffer(c);
+            add_lexeme(c);
+        }
+    }
+    else
+        machine_state = error;
+}
+
+void Lex::declaration_handle(char c)
+{
+    if (is_alpha(c) || is_numeric(c))
+        add_buffer(c);
+    else if (is_delimiter(c))
+    {
+        add_lexeme(c);
+        if (is_arithmetic(c))
+        {
+            add_buffer(c);
+            add_lexeme(c);
+        }
+    }
+    else if (!is_identifier(c))
+        machine_state = error;
+}
+
+void Lex::num_handle(char c)
+{
+    if (is_numeric(c))
+        add_buffer(c);
+    else if (is_delimiter(c))
+    {
+        add_lexeme(c);
+        if (is_arithmetic(c))
+        {
+            add_buffer(c);
+            add_lexeme(c);
+        }
+    }
+    else
+        machine_state = error;
+}
+
+void Lex::arithmetic_handle(char c)
+{
+    add_buffer(c);
+    add_lexeme(c);
+}
+
+int Lex::is_quote(char c)
+{
+    return c == '\"';
+}
+
+int Lex::is_alpha(char c)
+{
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+}
+
+int Lex::is_equation(char c)
+{
+    return c == ':';
+}
+
+int Lex::is_identifier(char c)
+{
+    return c == '?' || c == '@' || c == '$';
+}
+
+int Lex::is_brackets(char c)
+{
+    return c == '(' || c == ')' || c == '[' || c == ']';
+}
+
+int Lex::is_arithmetic(char c)
+{
+    return c == '+' || c == '-' || c == '*' || c == '/' || c == '%'
+           || c == '>' || c == '<' || c == '=' || c == '!' || c == '|' || c == '&';
+}
+
+int Lex::is_numeric(char c)
+{
+    return c >= '0' && c <= '9';
+}
+
+int Lex::is_delimiter(char c)
+{
+    return c == ' ' || c == '\t' || c == ';' || c == ','
+           || is_arithmetic(c) || is_brackets(c);
+}
+
+int Lex::is_end_lexeme(char c)
+{
+    return c == ' ' || c == '\t' || c == '\n';
 }
