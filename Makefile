@@ -3,4 +3,5 @@ CC=g++
 CFLAGS= -Wall -g
 
 all:
-	g++ main.cpp helpers.cpp Robot.cpp Competitor.cpp Lex.cpp -o robot
+	g++ -Wall main.cpp helpers.cpp Robot.cpp Competitor.cpp -o robot
+	g++ -Wall lexer.cpp Lex.cpp -o lexer
