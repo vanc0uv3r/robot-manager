@@ -6,15 +6,17 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-enum lexeme_types
+enum machine_states
 {
-    separator,
-    num_const,
+    num,
+    key_word,
     str_const,
-    variable,
-    label,
-    function,
-    key_word
+    declaration,
+    equal,
+    arithmetic,
+    none,
+    pass,
+    error,
 };
 
 struct lexeme
@@ -32,20 +34,56 @@ struct list
 
 class Lex
 {
-    int fd;
-    int c;
+    int quote;
+    int lexeme_len;
+    int line_number;
+    int machine_state;
     char *buffer;
-    lexeme l;
-    list lexeme_list;
 
 public:
-    Lex(const char *filename);
+    Lex();
 
     ~Lex(){ delete[] buffer;}
 
-    int define_lexeme_type();
+    int is_end_lexeme(char c);
 
-    int next_lexeme();
+    int is_delimiter(char c);
+
+    int is_numeric(char c);
+
+    int is_arithmetic(char c);
+
+    int is_brackets(char c);
+
+    int is_identifier(char c);
+
+    int is_equation(char c);
+
+    int is_alpha(char c);
+
+    int is_quote(char c);
+
+    void num_handle(char c);
+
+    void declaration_handle(char c);
+
+    void keyword_handle(char c);
+
+    void str_handle(char c);
+
+    void arithmetic_handle(char c);
+
+    void equation_handle(char c);
+
+    void define_state(char c);
+
+    void start_state(char c);
+
+    void add_lexeme(char c);
+
+    void add_buffer(char c);
+
+    void analyze(char c);
 };
 
 
