@@ -11,7 +11,9 @@ enum machine_states
     num,
     key_word,
     str_const,
-    declaration,
+    variable,
+    function,
+    label,
     equal,
     arithmetic,
     none,
@@ -57,6 +59,12 @@ public:
 
     int is_identifier(char c);
 
+    int is_variable(char c);
+
+    int is_function(char c);
+
+    int is_label(char c);
+
     int is_equation(char c);
 
     int is_alpha(char c);
@@ -84,6 +92,8 @@ public:
     void add_buffer(char c);
 
     void analyze(char c);
+
+    const char *define_lexeme_type();
 };
 
 
