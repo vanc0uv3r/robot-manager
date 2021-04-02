@@ -24,5 +24,6 @@ int main(int argc, char *argv[])
     open_program(argv[1]);
     while ((c = getchar()) != EOF)
         l.analyze(c);
+    l.print_lexemes();
     return 0;
 }
