@@ -41,6 +41,7 @@ class Lex
     int line_number;
     int machine_state;
     char *buffer;
+    list *lexeme_list;
 
 public:
     Lex();
@@ -87,13 +88,15 @@ public:
 
     void start_state(char c);
 
-    void add_lexeme(char c);
+    void add_lexeme(list **lexemes);
+
+    void print_lexemes();
 
     void add_buffer(char c);
 
     void analyze(char c);
 
-    const char *define_lexeme_type();
+    const char *define_lexeme_type(int state);
 };
 
 
