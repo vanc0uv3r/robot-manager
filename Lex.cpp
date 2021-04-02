@@ -13,8 +13,7 @@ void Lex::analyze(char c)
 {
     if (machine_state == none || machine_state == pass)
         define_state(c);
-    if (machine_state != none)
-        start_state(c);
+    start_state(c);
 }
 
 void Lex::add_buffer(char c)
@@ -24,22 +23,43 @@ void Lex::add_buffer(char c)
     lexeme_len++;
 }
 
+const char *Lex::define_lexeme_type()
+{
+    if (machine_state == num)
+        return "number";
+    else if (machine_state == key_word)
+        return "key word";
+    else if (machine_state == label)
+        return "label";
+    else if (machine_state == function)
+        return "function";
+    else if (machine_state == variable)
+        return "variable";
+    else if (machine_state == str_const)
+        return "string";
+    else if (machine_state == equal)
+        return "equation";
+    else if (machine_state == arithmetic)
+        return "equation";
+    else
+        return "kek";
+}
+
 void Lex::add_lexeme(char c)
 {
     printf("lexeme: '%s', ", buffer);
+    printf("lexeme type: '%s', ", define_lexeme_type());
     printf("line_number: %d\n", line_number);
     machine_state = none;
     lexeme_len = 0;
-    if (c == '\n')
-        line_number++;
 }
 
 void Lex::start_state(char c)
 {
+    if (c == '\n')
+        line_number++;
     if (machine_state == num)
         num_handle(c);
-    else if (machine_state == declaration)
-        declaration_handle(c);
     else if (machine_state == key_word)
         keyword_handle(c);
     else if (machine_state == str_const)
@@ -48,6 +68,9 @@ void Lex::start_state(char c)
         arithmetic_handle(c);
     else if (machine_state == equal)
         equation_handle(c);
+    else if (machine_state == variable || machine_state == function
+    || machine_state == label)
+        declaration_handle(c);
 }
 
 void Lex::define_state(char c)
@@ -58,8 +81,12 @@ void Lex::define_state(char c)
         machine_state = num;
     else if (is_alpha(c))
         machine_state = key_word;
-    else if (is_identifier(c))
-        machine_state = declaration;
+    else if (is_variable(c))
+        machine_state = variable;
+    else if (is_function(c))
+        machine_state = function;
+    else if (is_label(c))
+        machine_state = label;
     else if (is_quote(c))
         machine_state = str_const;
     else if (is_equation(c))
@@ -166,10 +193,26 @@ int Lex::is_equation(char c)
     return c == ':';
 }
 
+int Lex::is_variable(char c)
+{
+    return c == '$';
+}
+
+int Lex::is_function(char c)
+{
+    return c == '?';
+}
+
+int Lex::is_label(char c)
+{
+    return c == '@';
+}
+
 int Lex::is_identifier(char c)
 {
-    return c == '?' || c == '@' || c == '$';
+    return is_label(c) || is_function(c) || is_variable(c);
 }
+
 
 int Lex::is_brackets(char c)
 {
@@ -189,7 +232,7 @@ int Lex::is_numeric(char c)
 
 int Lex::is_delimiter(char c)
 {
-    return c == ' ' || c == '\t' || c == ';' || c == ','
+    return c == '\n' ||c == ' ' || c == '\t' || c == ';' || c == ','
            || is_arithmetic(c) || is_brackets(c);
 }
 
