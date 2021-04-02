@@ -46,7 +46,7 @@ class Lex
 public:
     Lex();
 
-    ~Lex(){ delete[] buffer;}
+    ~Lex(){ delete[] buffer; clean_lexemes();}
 
     int is_end_lexeme(char c);
 
@@ -95,6 +95,8 @@ public:
     void add_buffer(char c);
 
     void analyze(char c);
+
+    void clean_lexemes();
 
     const char *define_lexeme_type(int state);
 };

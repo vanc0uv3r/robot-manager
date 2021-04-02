@@ -55,6 +55,19 @@ void Lex::print_lexemes()
     }
 }
 
+void Lex::clean_lexemes()
+{
+    list *p;
+    while (lexeme_list != NULL)
+    {
+        p = lexeme_list;
+        lexeme_list = lexeme_list->next;
+        delete[] p->l->name;
+        delete p->l;
+        delete p;
+    }
+}
+
 const char *Lex::define_lexeme_type(int state)
 {
     if (state == num)
