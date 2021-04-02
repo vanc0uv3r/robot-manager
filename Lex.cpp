@@ -1,3 +1,4 @@
+#include <string.h>
 #include "Lex.h"
 
 Lex::Lex()
@@ -7,6 +8,7 @@ Lex::Lex()
     line_number = 1;
     machine_state = none;
     buffer = new char [128];
+    lexeme_list = NULL;
 }
 
 void Lex::analyze(char c)
@@ -23,35 +25,56 @@ void Lex::add_buffer(char c)
     lexeme_len++;
 }
 
-const char *Lex::define_lexeme_type()
+void Lex::add_lexeme(list **lexemes)
 {
-    if (machine_state == num)
+    if (*lexemes == NULL)
+    {
+        *lexemes = new list;
+        (*lexemes)->l = new lexeme;
+        (*lexemes)->l->name = new char[lexeme_len + 1];
+        strncpy((*lexemes)->l->name, buffer, lexeme_len + 1);
+        (*lexemes)->l->type = machine_state;
+        (*lexemes)->l->line = line_number;
+        (*lexemes)->next = NULL;
+        machine_state = none;
+        lexeme_len = 0;
+    }
+    else
+        add_lexeme(&((*lexemes)->next));
+}
+
+void Lex::print_lexemes()
+{
+    list *p = lexeme_list;
+    while (p != NULL)
+    {
+        printf("lexeme: '%s', ", p->l->name);
+        printf("lexeme type: '%s', ", define_lexeme_type(p->l->type));
+        printf("line_number: %d\n", p->l->line);
+        p = p->next;
+    }
+}
+
+const char *Lex::define_lexeme_type(int state)
+{
+    if (state == num)
         return "number";
-    else if (machine_state == key_word)
+    else if (state == key_word)
         return "key word";
-    else if (machine_state == label)
+    else if (state == label)
         return "label";
-    else if (machine_state == function)
+    else if (state == function)
         return "function";
-    else if (machine_state == variable)
+    else if (state == variable)
         return "variable";
-    else if (machine_state == str_const)
+    else if (state == str_const)
         return "string";
-    else if (machine_state == equal)
+    else if (state == equal)
         return "equation";
-    else if (machine_state == arithmetic)
+    else if (state == arithmetic)
         return "arithmetic";
     else
         return "kek";
-}
-
-void Lex::add_lexeme(char c)
-{
-    printf("lexeme: '%s', ", buffer);
-    printf("lexeme type: '%s', ", define_lexeme_type());
-    printf("line_number: %d\n", line_number);
-    machine_state = none;
-    lexeme_len = 0;
 }
 
 void Lex::start_state(char c)
@@ -101,7 +124,7 @@ void Lex::equation_handle(char c)
     {
         add_buffer(c);
         if (c == '=')
-            add_lexeme(c);
+            add_lexeme(&lexeme_list);
     }
     else
         machine_state = error;
@@ -115,7 +138,7 @@ void Lex::str_handle(char c)
     {
         quote = !quote;
         if (!quote)
-            add_lexeme(c);
+            add_lexeme(&lexeme_list);
     }
     else if (!is_quote(c))
         machine_state = error;
@@ -127,11 +150,11 @@ void Lex::keyword_handle(char c)
         add_buffer(c);
     else if (is_delimiter(c))
     {
-        add_lexeme(c);
+        add_lexeme(&lexeme_list);
         if (is_arithmetic(c))
         {
             add_buffer(c);
-            add_lexeme(c);
+            add_lexeme(&lexeme_list);
         }
     }
     else
@@ -144,11 +167,11 @@ void Lex::declaration_handle(char c)
         add_buffer(c);
     else if (is_delimiter(c))
     {
-        add_lexeme(c);
+        add_lexeme(&lexeme_list);
         if (is_arithmetic(c))
         {
             add_buffer(c);
-            add_lexeme(c);
+            add_lexeme(&lexeme_list);
         }
     }
     else if (!is_identifier(c))
@@ -161,11 +184,11 @@ void Lex::num_handle(char c)
         add_buffer(c);
     else if (is_delimiter(c))
     {
-        add_lexeme(c);
+        add_lexeme(&lexeme_list);
         if (is_arithmetic(c))
         {
             add_buffer(c);
-            add_lexeme(c);
+            add_lexeme(&lexeme_list);
         }
     }
     else
@@ -175,7 +198,7 @@ void Lex::num_handle(char c)
 void Lex::arithmetic_handle(char c)
 {
     add_buffer(c);
-    add_lexeme(c);
+    add_lexeme(&lexeme_list);
 }
 
 int Lex::is_quote(char c)
