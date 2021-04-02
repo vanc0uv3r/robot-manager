@@ -41,6 +41,7 @@ class Lex
     int line_number;
     int machine_state;
     char *buffer;
+    char current_c;
     list *lexeme_list;
 
 public:
@@ -48,51 +49,51 @@ public:
 
     ~Lex(){ delete[] buffer; clean_lexemes();}
 
-    int is_end_lexeme(char c);
+    int is_end_lexeme();
 
-    int is_delimiter(char c);
+    int is_delimiter();
 
-    int is_numeric(char c);
+    int is_numeric();
 
-    int is_arithmetic(char c);
+    int is_arithmetic();
 
-    int is_brackets(char c);
+    int is_brackets();
 
-    int is_identifier(char c);
+    int is_identifier();
 
-    int is_variable(char c);
+    int is_variable();
 
-    int is_function(char c);
+    int is_function();
 
-    int is_label(char c);
+    int is_label();
 
-    int is_equation(char c);
+    int is_equation();
 
-    int is_alpha(char c);
+    int is_alpha();
 
-    int is_quote(char c);
+    int is_quote();
 
-    void num_handle(char c);
+    void num_handle();
 
-    void declaration_handle(char c);
+    void declaration_handle();
 
-    void keyword_handle(char c);
+    void keyword_handle();
 
-    void str_handle(char c);
+    void str_handle();
 
-    void arithmetic_handle(char c);
+    void arithmetic_handle();
 
-    void equation_handle(char c);
+    void equation_handle();
 
-    void define_state(char c);
+    void define_state();
 
-    void start_state(char c);
+    void start_state();
 
     void add_lexeme(list **lexemes);
 
     void print_lexemes();
 
-    void add_buffer(char c);
+    void add_buffer();
 
     void analyze(char c);
 

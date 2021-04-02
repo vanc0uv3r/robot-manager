@@ -13,14 +13,15 @@ Lex::Lex()
 
 void Lex::analyze(char c)
 {
+    current_c = c;
     if (machine_state == none || machine_state == pass)
-        define_state(c);
-    start_state(c);
+        define_state();
+    start_state();
 }
 
-void Lex::add_buffer(char c)
+void Lex::add_buffer()
 {
-    buffer[lexeme_len] = c;
+    buffer[lexeme_len] = current_c;
     buffer[lexeme_len + 1] = '\0';
     lexeme_len++;
 }
@@ -90,83 +91,83 @@ const char *Lex::define_lexeme_type(int state)
         return "kek";
 }
 
-void Lex::start_state(char c)
+void Lex::start_state()
 {
-    if (c == '\n')
+    if (current_c == '\n')
         line_number++;
     if (machine_state == num)
-        num_handle(c);
+        num_handle();
     else if (machine_state == key_word)
-        keyword_handle(c);
+        keyword_handle();
     else if (machine_state == str_const)
-        str_handle(c);
+        str_handle();
     else if (machine_state == arithmetic)
-        arithmetic_handle(c);
+        arithmetic_handle();
     else if (machine_state == equal)
-        equation_handle(c);
+        equation_handle();
     else if (machine_state == variable || machine_state == function
     || machine_state == label)
-        declaration_handle(c);
+        declaration_handle();
 }
 
-void Lex::define_state(char c)
+void Lex::define_state()
 {
-    if (is_end_lexeme(c))
+    if (is_end_lexeme())
         machine_state = pass;
-    else if (is_numeric(c))
+    else if (is_numeric())
         machine_state = num;
-    else if (is_alpha(c))
+    else if (is_alpha())
         machine_state = key_word;
-    else if (is_variable(c))
+    else if (is_variable())
         machine_state = variable;
-    else if (is_function(c))
+    else if (is_function())
         machine_state = function;
-    else if (is_label(c))
+    else if (is_label())
         machine_state = label;
-    else if (is_quote(c))
+    else if (is_quote())
         machine_state = str_const;
-    else if (is_equation(c))
+    else if (is_equation())
         machine_state = equal;
-    else if (is_arithmetic(c))
+    else if (is_arithmetic())
         machine_state = arithmetic;
 }
 
-void Lex::equation_handle(char c)
+void Lex::equation_handle()
 {
-    if (c == ':' || c == '=')
+    if (current_c == ':' || current_c == '=')
     {
-        add_buffer(c);
-        if (c == '=')
+        add_buffer();
+        if (current_c == '=')
             add_lexeme(&lexeme_list);
     }
     else
         machine_state = error;
 }
 
-void Lex::str_handle(char c)
+void Lex::str_handle()
 {
-    if (is_alpha(c))
-        add_buffer(c);
-    else if (is_quote(c))
+    if (is_alpha())
+        add_buffer();
+    else if (is_quote())
     {
         quote = !quote;
         if (!quote)
             add_lexeme(&lexeme_list);
     }
-    else if (!is_quote(c))
+    else if (!is_quote())
         machine_state = error;
 }
 
-void Lex::keyword_handle(char c)
+void Lex::keyword_handle()
 {
-    if (is_alpha(c))
-        add_buffer(c);
-    else if (is_delimiter(c))
+    if (is_alpha())
+        add_buffer();
+    else if (is_delimiter())
     {
         add_lexeme(&lexeme_list);
-        if (is_arithmetic(c))
+        if (is_arithmetic())
         {
-            add_buffer(c);
+            add_buffer();
             add_lexeme(&lexeme_list);
         }
     }
@@ -174,33 +175,33 @@ void Lex::keyword_handle(char c)
         machine_state = error;
 }
 
-void Lex::declaration_handle(char c)
+void Lex::declaration_handle()
 {
-    if (is_alpha(c) || is_numeric(c))
-        add_buffer(c);
-    else if (is_delimiter(c))
+    if (is_alpha() || is_numeric())
+        add_buffer();
+    else if (is_delimiter())
     {
         add_lexeme(&lexeme_list);
-        if (is_arithmetic(c))
+        if (is_arithmetic())
         {
-            add_buffer(c);
+            add_buffer();
             add_lexeme(&lexeme_list);
         }
     }
-    else if (!is_identifier(c))
+    else if (!is_identifier())
         machine_state = error;
 }
 
-void Lex::num_handle(char c)
+void Lex::num_handle()
 {
-    if (is_numeric(c))
-        add_buffer(c);
-    else if (is_delimiter(c))
+    if (is_numeric())
+        add_buffer();
+    else if (is_delimiter())
     {
         add_lexeme(&lexeme_list);
-        if (is_arithmetic(c))
+        if (is_arithmetic())
         {
-            add_buffer(c);
+            add_buffer();
             add_lexeme(&lexeme_list);
         }
     }
@@ -208,71 +209,75 @@ void Lex::num_handle(char c)
         machine_state = error;
 }
 
-void Lex::arithmetic_handle(char c)
+void Lex::arithmetic_handle()
 {
-    add_buffer(c);
+    add_buffer();
     add_lexeme(&lexeme_list);
 }
 
-int Lex::is_quote(char c)
+int Lex::is_quote()
 {
-    return c == '\"';
+    return current_c == '\"';
 }
 
-int Lex::is_alpha(char c)
+int Lex::is_alpha()
 {
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+    return (current_c >= 'a' && current_c <= 'z')
+    || (current_c >= 'A' && current_c <= 'Z');
 }
 
-int Lex::is_equation(char c)
+int Lex::is_equation()
 {
-    return c == ':';
+    return current_c == ':';
 }
 
-int Lex::is_variable(char c)
+int Lex::is_variable()
 {
-    return c == '$';
+    return current_c == '$';
 }
 
-int Lex::is_function(char c)
+int Lex::is_function()
 {
-    return c == '?';
+    return current_c == '?';
 }
 
-int Lex::is_label(char c)
+int Lex::is_label()
 {
-    return c == '@';
+    return current_c == '@';
 }
 
-int Lex::is_identifier(char c)
+int Lex::is_identifier()
 {
-    return is_label(c) || is_function(c) || is_variable(c);
+    return is_label() || is_function() || is_variable();
 }
 
 
-int Lex::is_brackets(char c)
+int Lex::is_brackets()
 {
-    return c == '(' || c == ')' || c == '[' || c == ']';
+    return current_c == '(' || current_c == ')' || current_c == '['
+    || current_c == ']';
 }
 
-int Lex::is_arithmetic(char c)
+int Lex::is_arithmetic()
 {
-    return c == '+' || c == '-' || c == '*' || c == '/' || c == '%'
-           || c == '>' || c == '<' || c == '=' || c == '!' || c == '|' || c == '&';
+    return current_c == '+' || current_c == '-' || current_c == '*'
+    || current_c == '/' || current_c == '%' || current_c == '>'
+    || current_c == '<' || current_c == '=' || current_c == '!'
+    || current_c == '|' || current_c == '&';
 }
 
-int Lex::is_numeric(char c)
+int Lex::is_numeric()
 {
-    return c >= '0' && c <= '9';
+    return current_c >= '0' && current_c <= '9';
 }
 
-int Lex::is_delimiter(char c)
+int Lex::is_delimiter()
 {
-    return c == '\n' ||c == ' ' || c == '\t' || c == ';' || c == ','
-           || is_arithmetic(c) || is_brackets(c);
+    return current_c == '\n' ||current_c == ' ' || current_c == '\t'
+    || current_c == ';' || current_c == ',' || is_arithmetic() || is_brackets();
 }
 
-int Lex::is_end_lexeme(char c)
+int Lex::is_end_lexeme()
 {
-    return c == ' ' || c == '\t' || c == '\n';
+    return current_c == ' ' || current_c == '\t' || current_c == '\n';
 }
