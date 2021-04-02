@@ -40,7 +40,7 @@ const char *Lex::define_lexeme_type()
     else if (machine_state == equal)
         return "equation";
     else if (machine_state == arithmetic)
-        return "equation";
+        return "arithmetic";
     else
         return "kek";
 }
