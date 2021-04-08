@@ -1,7 +1,5 @@
 #include <stdio.h>
-#include <sys/types.h>
 #include "helpers.h"
-#include "Robot.h"
 #include "Lex.h"
 
 void open_program(const char *filename)
@@ -17,13 +15,53 @@ void open_program(const char *filename)
     close(fd);
 }
 
+const char *define_lexeme_type(int state)
+{
+    if (state == num)
+        return "number";
+    else if (state == key_word)
+        return "key word";
+    else if (state == label)
+        return "label";
+    else if (state == function)
+        return "function";
+    else if (state == variable)
+        return "variable";
+    else if (state == str_const)
+        return "string";
+    else if (state == equal)
+        return "equation";
+    else if (state == arithmetic)
+        return "arithmetic";
+    else if (state == brackets)
+        return "brackets";
+    else if (state == delimiter)
+        return "delimiter";
+    else
+        return "bug possibly";
+}
+
+void print_lexemes(list *lexeme_list)
+{
+    list *p = lexeme_list;
+    while (p != NULL)
+    {
+        printf("lexeme: '%s', ", p->l->name);
+        printf("lexeme type: '%s', ", define_lexeme_type(p->l->type));
+        printf("line_number: %d\n", p->l->line);
+        p = p->next;
+    }
+}
+
 int main(int argc, char *argv[])
 {
     int c;
     Lex l;
+    list *lexeme_list = NULL;
     open_program(argv[1]);
     while ((c = getchar()) != EOF)
         l.analyze(c);
-    l.print_lexemes();
+    lexeme_list = l.get_lexemes();
+    print_lexemes(lexeme_list);
     return 0;
 }
