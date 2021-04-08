@@ -19,6 +19,8 @@ enum machine_states
     none,
     pass,
     error,
+    delimiter,
+    brackets
 };
 
 struct lexeme
@@ -81,7 +83,7 @@ public:
 
     void str_handle();
 
-    void arithmetic_handle();
+    void simple_handle();
 
     void equation_handle();
 
@@ -98,6 +100,8 @@ public:
     void analyze(char c);
 
     void clean_lexemes();
+
+    list *get_lexemes();
 
     const char *define_lexeme_type(int state);
 };
