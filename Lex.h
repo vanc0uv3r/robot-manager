@@ -39,17 +39,13 @@ struct list
 class Lex
 {
     int quote;
+    int line_len;
     int lexeme_len;
     int line_number;
     int machine_state;
     char *buffer;
     char current_c;
     list *lexeme_list;
-
-public:
-    Lex();
-
-    ~Lex(){ delete[] buffer; clean_lexemes();}
 
     int is_end_lexeme();
 
@@ -97,11 +93,20 @@ public:
 
     void add_buffer();
 
-    void analyze(char c);
-
     void clean_lexemes();
 
+public:
+    Lex();
+
+    ~Lex(){ delete[] buffer; clean_lexemes();}
+
     list *get_lexemes();
+
+    int analyze(char c);
+
+    int get_error_line();
+
+    int get_error_position();
 
     const char *define_lexeme_type(int state);
 };
