@@ -5,18 +5,31 @@ Lex::Lex()
 {
     quote = 0;
     lexeme_len = 0;
+    line_len = 0;
     line_number = 1;
     machine_state = none;
     buffer = new char [128];
     lexeme_list = NULL;
 }
 
-void Lex::analyze(char c)
+int Lex::analyze(char c)
 {
     current_c = c;
     if (machine_state == none || machine_state == pass)
         define_state();
-    start_state();
+    if (machine_state != error && machine_state != pass)
+        start_state();
+    return machine_state;
+}
+
+int Lex::get_error_line()
+{
+    return line_number;
+}
+
+int Lex::get_error_position()
+{
+    return line_len;
 }
 
 void Lex::add_buffer()
@@ -24,6 +37,7 @@ void Lex::add_buffer()
     buffer[lexeme_len] = current_c;
     buffer[lexeme_len + 1] = '\0';
     lexeme_len++;
+    line_len++;
 }
 
 void Lex::add_lexeme(list **lexemes)
@@ -103,7 +117,10 @@ const char *Lex::define_lexeme_type(int state)
 void Lex::start_state()
 {
     if (current_c == '\n')
+    {
         line_number++;
+        line_len = 0;
+    }
     if (machine_state == num)
         num_handle();
     else if (machine_state == key_word)
@@ -117,6 +134,8 @@ void Lex::start_state()
     else if (machine_state == variable || machine_state == function
     || machine_state == label)
         declaration_handle();
+    else
+        machine_state = error;
 }
 
 void Lex::define_state()
@@ -143,6 +162,8 @@ void Lex::define_state()
         machine_state = delimiter;
     else if (is_brackets())
         machine_state = brackets;
+    else
+        machine_state = error;
 }
 
 void Lex::equation_handle()

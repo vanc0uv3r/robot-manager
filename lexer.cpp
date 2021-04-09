@@ -56,12 +56,21 @@ void print_lexemes(list *lexeme_list)
 int main(int argc, char *argv[])
 {
     int c;
+    int current_state = none;
     Lex l;
     list *lexeme_list = NULL;
     open_program(argv[1]);
-    while ((c = getchar()) != EOF)
-        l.analyze(c);
-    lexeme_list = l.get_lexemes();
-    print_lexemes(lexeme_list);
+    while ((c = getchar()) != EOF && current_state != error)
+        current_state = l.analyze(c);
+    if (current_state == error)
+    {
+        printf("Error in line %d, position - %d\n", l.get_error_line(),
+               l.get_error_position());
+    }
+    else
+    {
+        lexeme_list = l.get_lexemes();
+        print_lexemes(lexeme_list);
+    }
     return 0;
 }
