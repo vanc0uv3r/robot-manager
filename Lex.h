@@ -42,6 +42,7 @@ class Lex
     int line_len;
     int lexeme_len;
     int line_number;
+    int last_machine_state;
     int machine_state;
     char *buffer;
     char current_c;
@@ -109,6 +110,10 @@ public:
     int get_error_position();
 
     const char *define_lexeme_type(int state);
+
+    char get_last_char() {return current_c;}
+
+    int get_last_machine_state() {return last_machine_state;}
 };
 
 

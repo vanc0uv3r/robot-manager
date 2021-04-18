@@ -38,7 +38,7 @@ const char *define_lexeme_type(int state)
     else if (state == delimiter)
         return "delimiter";
     else
-        return "bug possibly";
+        return "Invalid lexeme";
 }
 
 void print_lexemes(list *lexeme_list)
@@ -64,8 +64,9 @@ int main(int argc, char *argv[])
         current_state = l.analyze(c);
     if (current_state == error)
     {
-        printf("Error in line %d, position - %d\n", l.get_error_line(),
-               l.get_error_position());
+        printf("%s error in line %d, position - %d in %c symbol\n",
+               define_lexeme_type(l.get_last_machine_state()),
+               l.get_error_line(), l.get_error_position(), l.get_last_char());
     }
     else
     {

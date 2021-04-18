@@ -8,6 +8,7 @@ Lex::Lex()
     line_len = 0;
     line_number = 1;
     machine_state = none;
+    last_machine_state = none;
     buffer = new char [128];
     lexeme_list = NULL;
 }
@@ -51,6 +52,7 @@ void Lex::add_lexeme(list **lexemes)
         (*lexemes)->l->type = machine_state;
         (*lexemes)->l->line = line_number;
         (*lexemes)->next = NULL;
+        last_machine_state = machine_state;
         machine_state = none;
         lexeme_len = 0;
     }
@@ -164,6 +166,7 @@ void Lex::define_state()
         machine_state = brackets;
     else
         machine_state = error;
+    last_machine_state = machine_state;
 }
 
 void Lex::equation_handle()
