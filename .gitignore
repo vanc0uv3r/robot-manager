@@ -99,3 +99,6 @@ gen
 CMakeLists.txt
 cmake-build-debug
 robot
+
+test_program.txt
+lexer
