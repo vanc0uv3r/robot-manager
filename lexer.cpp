@@ -64,6 +64,7 @@ int main(int argc, char *argv[])
         current_state = l.analyze(c);
     if (current_state == error)
     {
+        print_lexemes(l.get_lexemes());
         printf("%s error in line %d, position - %d in %c symbol\n",
                define_lexeme_type(l.get_last_machine_state()),
                l.get_error_line(), l.get_error_position(), l.get_last_char());

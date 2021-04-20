@@ -5,7 +5,7 @@ Lex::Lex()
 {
     quote = 0;
     lexeme_len = 0;
-    line_len = 0;
+    line_len = 1;
     line_number = 1;
     machine_state = none;
     last_machine_state = none;
@@ -20,6 +20,12 @@ int Lex::analyze(char c)
         define_state();
     if (machine_state != error && machine_state != pass)
         start_state();
+    if (current_c == '\n')
+    {
+        line_number++;
+        line_len = 0;
+        machine_state = none;
+    }
     return machine_state;
 }
 
@@ -118,11 +124,6 @@ const char *Lex::define_lexeme_type(int state)
 
 void Lex::start_state()
 {
-    if (current_c == '\n')
-    {
-        line_number++;
-        line_len = 0;
-    }
     if (machine_state == num)
         num_handle();
     else if (machine_state == key_word)
@@ -136,7 +137,7 @@ void Lex::start_state()
     else if (machine_state == variable || machine_state == function
     || machine_state == label)
         declaration_handle();
-    else
+    else if (machine_state != delimiter)
         machine_state = error;
 }
 
@@ -183,7 +184,7 @@ void Lex::equation_handle()
 
 void Lex::str_handle()
 {
-    if (is_alpha())
+    if (is_alpha() || is_numeric())
         add_buffer();
     else if (is_quote())
     {
@@ -263,7 +264,8 @@ int Lex::is_quote()
 int Lex::is_alpha()
 {
     return (current_c >= 'a' && current_c <= 'z')
-    || (current_c >= 'A' && current_c <= 'Z');
+    || (current_c >= 'A' && current_c <= 'Z') || current_c == '_'
+    || current_c == '-';
 }
 
 int Lex::is_equation()
