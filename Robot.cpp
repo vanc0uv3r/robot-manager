@@ -81,7 +81,8 @@ void Robot::create(char *players)
 
 int Robot::check_end()
 {
-    for (int i = 0; i < strlen(buffer); i++)
+    int len = strlen(buffer);
+    for (int i = 0; i < len; i++)
     {
         if (buffer[i] == '\n')
             return i;
