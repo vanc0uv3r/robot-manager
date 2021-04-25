@@ -103,11 +103,13 @@ public:
 
     list *get_lexemes();
 
-    int analyze(char c);
+    void analyze(char c);
 
     int get_error_line();
 
     int get_error_position();
+
+    int no_error();
 
     const char *define_lexeme_type(int state);
 

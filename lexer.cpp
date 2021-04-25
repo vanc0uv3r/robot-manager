@@ -53,21 +53,27 @@ void print_lexemes(list *lexeme_list)
     }
 }
 
+int no_error(int state)
+{
+    return state != error;
+}
+
+
 int main(int argc, char *argv[])
 {
     int c;
-    int current_state = none;
     Lex l;
     list *lexeme_list = NULL;
     open_program(argv[1]);
-    while ((c = getchar()) != EOF && current_state != error)
-        current_state = l.analyze(c);
-    if (current_state == error)
+    while ((c = getchar()) != EOF && l.no_error())
+        l.analyze(c);
+    if (!l.no_error())
     {
         print_lexemes(l.get_lexemes());
         printf("%s error in line %d, position - %d in %c symbol\n",
                define_lexeme_type(l.get_last_machine_state()),
-               l.get_error_line(), l.get_error_position(), l.get_last_char());
+               l.get_error_line(), l.get_error_position(), 
+               l.get_last_char());
     }
     else
     {
