@@ -130,7 +130,8 @@ void Lex::start_state()
         keyword_handle();
     else if (machine_state == str_const)
         str_handle();
-    else if (machine_state == arithmetic || machine_state == brackets)
+    else if (machine_state == arithmetic || machine_state == brackets
+    || machine_state == delimiter)
         simple_handle();
     else if (machine_state == equal)
         equation_handle();
