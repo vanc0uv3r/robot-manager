@@ -105,6 +105,8 @@ public:
 
     void analyze(char c);
 
+    void check_buffer();
+
     int get_error_line();
 
     int get_error_position();

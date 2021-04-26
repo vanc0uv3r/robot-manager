@@ -65,6 +65,7 @@ void Lex::add_lexeme(list **lexemes)
         last_machine_state = machine_state;
         machine_state = none;
         lexeme_len = 0;
+        buffer[0] = '\0';
     }
     else
         add_lexeme(&((*lexemes)->next));
@@ -275,6 +276,13 @@ int Lex::is_alpha()
     || (current_c >= 'A' && current_c <= 'Z') || current_c == '_'
     || current_c == '-';
 }
+
+void Lex::check_buffer()
+{
+    if (buffer[0] != '\0')
+        add_lexeme(&lexeme_list);
+}
+
 
 int Lex::is_equation()
 {
