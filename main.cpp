@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <sys/types.h>
-#include "helpers.h"
+#include "helpers/helpers.h"
 #include "Robot.h"
 
 void play(Robot& r)

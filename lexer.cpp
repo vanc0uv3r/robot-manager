@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "helpers.h"
-#include "Lex.h"
+#include "helpers/helpers.h"
+#include "Lex/Lex.h"
 
 void open_program(const char *filename)
 {
