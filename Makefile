@@ -4,20 +4,24 @@ CFLAGS= -Wall -g
 
 all: bot
 
-bot: main.o robot.o competitor.o lexer.o syntaxer.o
-	g++ main.o robot.o competitor.o lexer.o syntaxer.o -o robot
+bot: main.o robot.o helpers.o competitor.o syntaxer.o lexer.o
+	g++ main.o robot.o helpers.o competitor.o syntaxer.o lexer.o -o kek
+	rm -rf *.o
 
-main.o: main.cpp helpers.cpp
-	g++ main.cpp helpers.cpp
+main.o: syntaxer.cpp
+	g++ -c syntaxer.cpp -o main.o
+
+helpers.o: helpers/helpers.cpp
+	g++ -c helpers/helpers.cpp -o helpers.o
 
 robot.o: Robot.cpp
-	g++ Robot.cpp
+	g++ -c Robot/Robot.cpp -o robot.o
 
-competitor.o: Competitor.cpp
-	g++ Competitor.cpp
+competitor.o: Competitor/Competitor.cpp
+	g++ -c Competitor/Competitor.cpp -o competitor.o
 
-lexer.o: lexer.cpp Lex.h Lex.cpp
-	g++ lexer.cpp Lex.cpp
+syntaxer.o: Syntax/Syntax.cpp Syntax/Syntax.h
+	g++ -c Syntax/Syntax.cpp -o syntaxer.o
 
-syntaxer.o: syntaxer.cpp Syntax.cpp Syntax.h
-	g++ syntaxer.cpp Syntax.cpp -o syntaxer
+lexer.o: Lex/Lex.cpp Lex/Lex.h
+	g++ -c Lex/Lex.cpp -o lexer.o
