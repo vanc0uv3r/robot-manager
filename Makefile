@@ -15,7 +15,7 @@ helpers.o: helpers/helpers.cpp
 	g++ -c helpers/helpers.cpp -o helpers.o
 
 robot.o: Robot.cpp
-	g++ -c Robot/Robot.cpp -o robot.o
+	g++ -c Robot.cpp -o robot.o
 
 competitor.o: Competitor/Competitor.cpp
 	g++ -c Competitor/Competitor.cpp -o competitor.o
