@@ -48,7 +48,15 @@ class Syntax
 
     void keyword_hdl();
 
-    void operation();
+    void exp1();
+
+    void exp2();
+
+    void cond1();
+
+    int is_service();
+
+    void service_hdl();
 
     void check_open_round_bracket();
 

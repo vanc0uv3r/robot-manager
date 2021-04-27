@@ -98,7 +98,7 @@ void Syntax::check_open_square_bracket()
           "Invalid syntax. [ expected", current_lexeme->name);
 }
 
-void Syntax::operation()
+void Syntax::exp1()
 {
     get_lexeme();
     if (current_lexeme->type == arithmetic)
@@ -106,6 +106,28 @@ void Syntax::operation()
         get_lexeme();
         exp();
     }
+}
+
+void Syntax::exp2()
+{
+    if (lex_equals("and"))
+    {
+        get_lexeme();
+        exp();
+    }
+    else if (lex_equals("or"))
+    {
+        get_lexeme();
+        exp();
+    }
+}
+
+void Syntax::cond1()
+{
+    if (lex_equals("and"))
+        exp();
+    else if (lex_equals("or"))
+        exp();
 }
 
 int Syntax::valid_exp_beginning()
@@ -128,14 +150,15 @@ void Syntax::exp()
     {
         if (is_function())
             game_func_hdl();
-        operation();
+        exp1();
     }
-    else if (lex_equals("("))
+    else if (is_bracket())
     {
+        check_open_round_bracket();
         get_lexeme();
         exp();
         check_close_round_bracket();
-        operation();
+        exp1();
     }
     else if (lex_equals("!"))
     {
@@ -205,11 +228,7 @@ void Syntax::multi_condition()
         check_open_round_bracket();
         get_lexeme();
         exp();
-        if (is_logic())
-        {
-            get_lexeme();
-            exp();
-        }
+        exp2();
         check_close_round_bracket();
         get_lexeme();
     } else
@@ -250,6 +269,32 @@ void Syntax::check_semicolon()
           "Invalid syntax. ; expected", current_lexeme->name);
 }
 
+int Syntax::is_service()
+{
+    return lex_equals("buy") || lex_equals("sell")
+    || lex_equals("build") || lex_equals("prod") || lex_equals("endturn");
+}
+
+void Syntax::service_hdl()
+{
+    if (lex_equals("buy") || lex_equals("sell"))
+    {
+        exp();
+        check_comma();
+        get_lexeme();
+        exp();
+        check_semicolon();
+    }
+    else if (lex_equals("build") || lex_equals("prod"))
+    {
+        exp();
+        check_semicolon();
+    }
+    else if (lex_equals("endturn"))
+        check_semicolon();
+}
+
+
 void Syntax::keyword_hdl()
 {
     if (lex_equals("goto"))
@@ -264,25 +309,10 @@ void Syntax::keyword_hdl()
         get_lexeme();
         if_hdl();
     }
-    else if (lex_equals("buy") || lex_equals("sell"))
+    else if (is_service())
     {
         get_lexeme();
-        exp();
-        check_comma();
-        get_lexeme();
-        exp();
-        check_semicolon();
-    }
-    else if (lex_equals("build") || lex_equals("prod"))
-    {
-        get_lexeme();
-        exp();
-        check_semicolon();
-    }
-    else if (lex_equals("endturn"))
-    {
-        get_lexeme();
-        check_semicolon();
+        service_hdl();
     }
     else
         throw ErrorSyntax(current_lexeme->line,
@@ -291,24 +321,21 @@ void Syntax::keyword_hdl()
 
 void Syntax::check_open_round_bracket()
 {
-    if (!(current_lexeme->type == brackets
-          && lex_equals("(")))
+    if (!(current_lexeme->type == brackets && lex_equals("(")))
         throw ErrorSyntax(current_lexeme->line,
           "Invalid syntax. ( expected", current_lexeme->name);
 }
 
 void Syntax::check_open_curly_bracket()
 {
-    if (!(current_lexeme->type == brackets
-          && lex_equals("{")))
+    if (!(current_lexeme->type == brackets && lex_equals("{")))
         throw ErrorSyntax(current_lexeme->line,
           "Invalid syntax. { expected", current_lexeme->name);
 }
 
 void Syntax::check_close_curly_bracket()
 {
-    if (!(current_lexeme->type == brackets
-          && lex_equals("}")))
+    if (!(current_lexeme->type == brackets && lex_equals("}")))
         throw ErrorSyntax(current_lexeme->line,
           "Invalid syntax. } expected", current_lexeme->name);
 }
