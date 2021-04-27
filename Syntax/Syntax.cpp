@@ -9,11 +9,16 @@ void Syntax::start_syntax()
     }
 }
 
+int Syntax::is_label()
+{
+    return current_lexeme->type == label;
+}
+
 void Syntax::s()
 {
     if (is_statement())
         statement();
-    else if (current_lexeme->type != label)
+    else if (!is_label())
         throw ErrorSyntax(current_lexeme->line,
           "Invalid token. Operator or label expected", current_lexeme->name);
 }
@@ -38,7 +43,7 @@ void Syntax::multi_statement()
         check_semicolon();
         get_lexeme();
     }
-    if (!is_bracket())
+    if (!is_bracket() && !is_label())
         multi_statement();
 }
 
@@ -93,7 +98,7 @@ void Syntax::check_close_square_bracket()
 
 void Syntax::check_open_square_bracket()
 {
-    if (!(is_bracket() == brackets && lex_equals("[")))
+    if (!(is_bracket() && lex_equals("[")))
         throw ErrorSyntax(current_lexeme->line,
           "Invalid syntax. [ expected", current_lexeme->name);
 }
@@ -105,6 +110,14 @@ void Syntax::exp1()
     {
         get_lexeme();
         exp();
+    }
+    else if (is_bracket() && lex_equals("["))
+    {
+        check_open_square_bracket();
+        get_lexeme();
+        exp();
+        check_close_square_bracket();
+        get_lexeme();
     }
 }
 
@@ -125,9 +138,15 @@ void Syntax::exp2()
 void Syntax::cond1()
 {
     if (lex_equals("and"))
+    {
+        get_lexeme();
         exp();
+    }
     else if (lex_equals("or"))
+    {
+        get_lexeme();
         exp();
+    }
 }
 
 int Syntax::valid_exp_beginning()
@@ -145,7 +164,7 @@ void Syntax::exp()
 {
     if (!valid_exp_beginning())
         throw ErrorSyntax(current_lexeme->line,
-          "Invalid beginning of expression", current_lexeme->name);
+          "Invalid expression", current_lexeme->name);
     if (is_operand1())
     {
         if (is_function())
@@ -171,7 +190,7 @@ void Syntax::get_lexeme()
 {
     if (check_end())
         throw ErrorSyntax(current_lexeme->line,
-          "Invalid syntax. label expected", NULL);
+          "Invalid syntax. ; expected", NULL);
     current_lexeme = lexeme_list->l;
     lexeme_list = lexeme_list->next;
 }
@@ -196,11 +215,11 @@ void Syntax::init_hdl()
         exp();
         check_close_square_bracket();
         get_lexeme();
-        if (!is_equal())
-            throw ErrorSyntax(current_lexeme->line,
-              "Invalid syntax. := expected", current_lexeme->name);
-        get_lexeme();
-        exp();
+        if (is_equal())
+        {
+            get_lexeme();
+            exp();
+        }
         check_semicolon();
     }
     else
@@ -239,8 +258,7 @@ void Syntax::condition()
 {
     get_lexeme();
     multi_condition();
-    if (is_logic())
-        condition();
+    cond1();
 }
 
 void Syntax::if_hdl()
@@ -279,6 +297,7 @@ void Syntax::service_hdl()
 {
     if (lex_equals("buy") || lex_equals("sell"))
     {
+        get_lexeme();
         exp();
         check_comma();
         get_lexeme();
@@ -287,11 +306,15 @@ void Syntax::service_hdl()
     }
     else if (lex_equals("build") || lex_equals("prod"))
     {
+        get_lexeme();
         exp();
         check_semicolon();
     }
     else if (lex_equals("endturn"))
+    {
+        get_lexeme();
         check_semicolon();
+    }
 }
 
 
@@ -310,10 +333,7 @@ void Syntax::keyword_hdl()
         if_hdl();
     }
     else if (is_service())
-    {
-        get_lexeme();
         service_hdl();
-    }
     else
         throw ErrorSyntax(current_lexeme->line,
           "Unknown operator", current_lexeme->name);

@@ -84,6 +84,8 @@ class Syntax
 
     int is_logic();
 
+    int is_label();
+
 public:
 
     void start_syntax();

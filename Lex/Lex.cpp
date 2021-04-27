@@ -273,8 +273,7 @@ int Lex::is_quote()
 int Lex::is_alpha()
 {
     return (current_c >= 'a' && current_c <= 'z')
-    || (current_c >= 'A' && current_c <= 'Z') || current_c == '_'
-    || current_c == '-';
+    || (current_c >= 'A' && current_c <= 'Z') || current_c == '_';
 }
 
 void Lex::check_buffer()
