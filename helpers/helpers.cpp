@@ -5,10 +5,10 @@
 
 int str_to_int(char *s)
 {
-    int i, num = 0;
+    int i, num = 0, len = strlen(s);
     if (strlen(s) > str_int_size)
         return -1;
-    for (i = 0; i < strlen(s); ++i)
+    for (i = 0; i < len; ++i)
     {
         if ((s[i] > '9' || s[i] < '0'))
             return -1;

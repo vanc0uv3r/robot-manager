@@ -1,7 +1,7 @@
 #include "Robot.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include "Competitor.h"
+#include "Competitor/Competitor.h"
 
 Robot::Robot(char *serv_ip, char *serv_port, char *nickname)
 {
@@ -81,7 +81,8 @@ void Robot::create(char *players)
 
 int Robot::check_end()
 {
-    for (int i = 0; i < strlen(buffer); i++)
+    int len = strlen(buffer);
+    for (int i = 0; i < len; i++)
     {
         if (buffer[i] == '\n')
             return i;

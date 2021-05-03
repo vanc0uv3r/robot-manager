@@ -2,11 +2,11 @@
 #define ROBOT_MANAGER_ROBOT_H
 
 #include "stdio.h"
-#include "helpers.h"
+#include "helpers/helpers.h"
 #include "unistd.h"
 #include "stdlib.h"
 #include "string.h"
-#include "Competitor.h"
+#include "Competitor/Competitor.h"
 
 struct market_info
 {

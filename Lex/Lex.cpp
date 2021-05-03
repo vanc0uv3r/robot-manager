@@ -13,7 +13,7 @@ Lex::Lex()
     lexeme_list = NULL;
 }
 
-int Lex::analyze(char c)
+void Lex::analyze(char c)
 {
     current_c = c;
     if (machine_state == none || machine_state == pass)
@@ -26,7 +26,6 @@ int Lex::analyze(char c)
         line_len = 0;
         machine_state = none;
     }
-    return machine_state;
 }
 
 int Lex::get_error_line()
@@ -37,6 +36,11 @@ int Lex::get_error_line()
 int Lex::get_error_position()
 {
     return line_len;
+}
+
+int Lex::no_error()
+{
+    return machine_state != error;
 }
 
 void Lex::add_buffer()
@@ -61,6 +65,7 @@ void Lex::add_lexeme(list **lexemes)
         last_machine_state = machine_state;
         machine_state = none;
         lexeme_len = 0;
+        buffer[0] = '\0';
     }
     else
         add_lexeme(&((*lexemes)->next));
@@ -130,7 +135,8 @@ void Lex::start_state()
         keyword_handle();
     else if (machine_state == str_const)
         str_handle();
-    else if (machine_state == arithmetic || machine_state == brackets)
+    else if (machine_state == arithmetic || machine_state == brackets
+    || machine_state == delimiter)
         simple_handle();
     else if (machine_state == equal)
         equation_handle();
@@ -200,7 +206,8 @@ void Lex::keyword_handle()
 {
     if (is_alpha())
         add_buffer();
-    else if (is_delimiter() || is_end_lexeme() || is_arithmetic() || is_brackets())
+    else if (is_delimiter() || is_end_lexeme() || is_arithmetic() 
+            || is_brackets())
     {
         add_lexeme(&lexeme_list);
         if (is_arithmetic() || is_delimiter() || is_brackets())
@@ -218,7 +225,8 @@ void Lex::declaration_handle()
 {
     if (is_alpha() || is_numeric())
         add_buffer();
-    else if (is_delimiter() || is_end_lexeme() || is_arithmetic() || is_brackets())
+    else if (is_delimiter() || is_end_lexeme() || is_arithmetic() 
+            || is_brackets())
     {
         add_lexeme(&lexeme_list);
         if (is_arithmetic() || is_delimiter() || is_brackets())
@@ -236,7 +244,8 @@ void Lex::num_handle()
 {
     if (is_numeric())
         add_buffer();
-    else if (is_delimiter() || is_end_lexeme() || is_arithmetic() || is_brackets())
+    else if (is_delimiter() || is_end_lexeme() || is_arithmetic() 
+            || is_brackets())
     {
         add_lexeme(&lexeme_list);
         if (is_arithmetic() || is_delimiter() || is_brackets())
@@ -264,9 +273,15 @@ int Lex::is_quote()
 int Lex::is_alpha()
 {
     return (current_c >= 'a' && current_c <= 'z')
-    || (current_c >= 'A' && current_c <= 'Z') || current_c == '_'
-    || current_c == '-';
+    || (current_c >= 'A' && current_c <= 'Z') || current_c == '_';
 }
+
+void Lex::check_buffer()
+{
+    if (buffer[0] != '\0')
+        add_lexeme(&lexeme_list);
+}
+
 
 int Lex::is_equation()
 {

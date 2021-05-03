@@ -1,6 +1,7 @@
 #include <stdio.h>
-#include "helpers/helpers.h"
 #include "Lex/Lex.h"
+#include "Syntax/Syntax.h"
+#include "Syntax/ErrorSyntax.h"
 
 void open_program(const char *filename)
 {
@@ -38,7 +39,7 @@ const char *define_lexeme_type(int state)
     else if (state == delimiter)
         return "delimiter";
     else
-        return "Invalid lexeme";
+        return "bug possibly";
 }
 
 void print_lexemes(list *lexeme_list)
@@ -53,32 +54,37 @@ void print_lexemes(list *lexeme_list)
     }
 }
 
-int no_error(int state)
+void hdl_lex_error(Lex *l)
 {
-    return state != error;
+    print_lexemes(l->get_lexemes());
+    printf("%s error in line %d, position - %d in %c symbol\n",
+           define_lexeme_type(l->get_last_machine_state()),
+           l->get_error_line(), l->get_error_position(),
+           l->get_last_char());
 }
-
 
 int main(int argc, char *argv[])
 {
     int c;
     Lex l;
-    list *lexeme_list = NULL;
+    Syntax s;
     open_program(argv[1]);
     while ((c = getchar()) != EOF && l.no_error())
         l.analyze(c);
+    l.check_buffer();
     if (!l.no_error())
-    {
-        print_lexemes(l.get_lexemes());
-        printf("%s error in line %d, position - %d in %c symbol\n",
-               define_lexeme_type(l.get_last_machine_state()),
-               l.get_error_line(), l.get_error_position(), 
-               l.get_last_char());
-    }
+        hdl_lex_error(&l);
     else
+        print_lexemes(l.get_lexemes());
+    s.load_lexemes(l.get_lexemes());
+    try
     {
-        lexeme_list = l.get_lexemes();
-        print_lexemes(lexeme_list);
+        s.start_syntax();
+        printf("OK\n");
+    } catch (const ErrorSyntax &err_syn)
+    {
+        err_syn.error_msg();
     }
+
     return 0;
 }
