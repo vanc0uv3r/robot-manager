@@ -1,7 +1,7 @@
 #include "Robot.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include "Competitor/Competitor.h"
+#include "../Competitor/Competitor.h"
 
 Robot::Robot(char *serv_ip, char *serv_port, char *nickname)
 {

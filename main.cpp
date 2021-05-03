@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include "helpers/helpers.h"
-#include "Robot.h"
+#include "Robot/Robot.h"
 
 void play(Robot& r)
 {

@@ -98,7 +98,7 @@ gen
 
 CMakeLists.txt
 cmake-build-debug
-robot
+robot_manager
 
 test_program.txt
 lexer
