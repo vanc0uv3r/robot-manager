@@ -117,7 +117,7 @@ void Syntax::exp1()
         get_lexeme();
         exp();
         check_close_square_bracket();
-        get_lexeme();
+        exp1();
     }
 }
 
