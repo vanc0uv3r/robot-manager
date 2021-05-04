@@ -36,8 +36,6 @@ class Syntax
 
     void goto_hdl();
 
-    void multi_condition();
-
     void condition();
 
     void if_hdl();
@@ -50,7 +48,7 @@ class Syntax
 
     void exp1();
 
-    void exp2();
+    void cond2();
 
     void cond1();
 

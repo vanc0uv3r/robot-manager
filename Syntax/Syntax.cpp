@@ -121,32 +121,28 @@ void Syntax::exp1()
     }
 }
 
-void Syntax::exp2()
+void Syntax::cond2()
 {
-    if (lex_equals("and"))
+    if (is_logic())
     {
         get_lexeme();
-        exp();
-    }
-    else if (lex_equals("or"))
-    {
-        get_lexeme();
-        exp();
+        cond1();
     }
 }
 
 void Syntax::cond1()
 {
-    if (lex_equals("and"))
+    if (is_bracket())
     {
+        check_open_round_bracket();
         get_lexeme();
-        exp();
-    }
-    else if (lex_equals("or"))
-    {
+        cond1();
+        check_close_round_bracket();
         get_lexeme();
-        exp();
     }
+    else
+        exp();
+    cond2();
 }
 
 int Syntax::valid_exp_beginning()
@@ -240,24 +236,9 @@ int Syntax::is_logic()
     && current_lexeme->type == key_word;
 }
 
-void Syntax::multi_condition()
-{
-    if (is_bracket())
-    {
-        check_open_round_bracket();
-        get_lexeme();
-        exp();
-        exp2();
-        check_close_round_bracket();
-        get_lexeme();
-    } else
-        exp();
-}
-
 void Syntax::condition()
 {
     get_lexeme();
-    multi_condition();
     cond1();
 }
 
