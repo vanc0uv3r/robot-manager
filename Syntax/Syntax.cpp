@@ -180,6 +180,8 @@ void Syntax::exp()
         get_lexeme();
         exp();
     }
+    else if (current_lexeme->type == str_const)
+        get_lexeme();
 }
 
 void Syntax::get_lexeme()
