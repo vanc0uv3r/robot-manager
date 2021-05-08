@@ -9,6 +9,7 @@ struct RPNItem
 {
     RPNElem *el;
     RPNItem *next;
+    RPNItem *back;
 };
 
 class RPNElem
@@ -57,11 +58,12 @@ public:
 
 class RPNLabel : public RPNConstant
 {
-    RPNElem *value;
+    RPNItem *value;
+
 public:
-    RPNLabel(RPNElem *el);
+    RPNLabel(RPNItem *a);
     RPNElem *clone() const;
-    RPNElem *get() const;
+    RPNItem *get() const;
     ~RPNLabel() {}
 };
 
@@ -89,6 +91,47 @@ public:
     RPNElem *evaluate_fun(RPNItem **stack) const;
 };
 
+class RPNFunMultiply : public RPNFunction
+{
+public:
+    ~RPNFunMultiply() {}
+    RPNElem *evaluate_fun(RPNItem **stack) const;
+};
+
+class RPNFunModulo : public RPNFunction
+{
+public:
+    ~RPNFunModulo() {}
+    RPNElem *evaluate_fun(RPNItem **stack) const;
+};
+
+class RPNFunDivision : public RPNFunction
+{
+public:
+    ~RPNFunDivision() {}
+    RPNElem *evaluate_fun(RPNItem **stack) const;
+};
+
+class RPNOpGO : public RPNElem
+{
+public:
+    ~RPNOpGO() {}
+    void evaluate(RPNItem **stack, RPNItem **cur_cmd) const;
+};
+
+class RPNOpGOFalse : public RPNElem
+{
+public:
+    ~RPNOpGOFalse() {}
+    void evaluate(RPNItem **stack, RPNItem **cur_cmd) const;
+};
+
+class RPNVar : public RPNFunction
+{
+public:
+    RPNVar() {}
+    void evaluate(RPNItem **stack, RPNItem **cur_cmd) const;
+};
 
 
 #endif //ROBOT_MANAGER_RPNELEM_H
