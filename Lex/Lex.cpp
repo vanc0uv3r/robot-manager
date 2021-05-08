@@ -278,7 +278,7 @@ int Lex::is_alpha()
 
 void Lex::check_buffer()
 {
-    if (buffer[0] != '\0')
+    if (buffer[0] != '\0' && machine_state != error)
         add_lexeme(&lexeme_list);
 }
 
