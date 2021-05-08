@@ -1,6 +1,8 @@
 #ifndef ROBOT_MANAGER_HELPERS_H
 #define ROBOT_MANAGER_HELPERS_H
 
+#include "../Lex/Lex.h"
+
 #define snd_buff_size 100
 
 enum next_action {
@@ -35,5 +37,13 @@ int check_create(char *argv[]);
 int check_nickname(char *nickname);
 
 char *reverse_str(char *str);
+
+void hdl_lex_error(Lex *l);
+
+void print_lexemes(list *lexeme_list);
+
+const char *define_lexeme_type(int state);
+
+void open_program(const char *filename);
 
 #endif //ROBOT_MANAGER_HELPERS_H
