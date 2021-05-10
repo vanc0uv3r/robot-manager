@@ -48,6 +48,18 @@ class Syntax
 
     void exp1();
 
+    void exp2();
+
+    void exp3();
+
+    void exp4();
+
+    void exp5();
+
+    void exp6();
+
+    void exp7();
+
     void cond2();
 
     void cond1();

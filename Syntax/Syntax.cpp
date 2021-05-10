@@ -105,19 +105,12 @@ void Syntax::check_open_square_bracket()
 
 void Syntax::exp1()
 {
-    get_lexeme();
-    if (current_lexeme->type == arithmetic)
+    if (is_bracket() && lex_equals("["))
     {
-        get_lexeme();
-        exp();
-    }
-    else if (is_bracket() && lex_equals("["))
-    {
-        check_open_square_bracket();
         get_lexeme();
         exp();
         check_close_square_bracket();
-        exp1();
+        get_lexeme();
     }
 }
 
@@ -153,35 +146,138 @@ int Syntax::valid_exp_beginning()
 
 int Syntax::is_operand1()
 {
-    return is_num() || is_var() || is_function();
+    return is_num() || is_var() || is_function() || is_str();
 }
 
 void Syntax::exp()
 {
-    if (!valid_exp_beginning())
-        throw ErrorSyntax(current_lexeme->line,
-          "Invalid expression", current_lexeme->name);
-    if (is_operand1())
+    exp2();
+    if (lex_equals("or"))
     {
-        if (is_function())
-            game_func_hdl();
-        exp1();
+        get_lexeme();
+        exp();
+        // add
     }
-    else if (is_bracket())
+}
+
+void Syntax::exp2()
+{
+    exp3();
+    if (lex_equals("and"))
+    {
+        get_lexeme();
+        exp2();
+        // add
+    }
+}
+
+void Syntax::exp3()
+{
+    exp4();
+    if (lex_equals(">"))
+    {
+        get_lexeme();
+        exp3();
+        // add
+    }
+    else if (lex_equals("<"))
+    {
+        get_lexeme();
+        exp3();
+        // add
+    }
+
+    else if (lex_equals("="))
+    {
+        get_lexeme();
+        exp3();
+        // add
+    }
+}
+
+void Syntax::exp4()
+{
+    exp5();
+    if (lex_equals("+"))
+    {
+        get_lexeme();
+        exp4();
+        // add
+    }
+    else if (lex_equals("-"))
+    {
+        get_lexeme();
+        exp4();
+        // add
+    }
+}
+
+void Syntax::exp5()
+{
+    exp6();
+    if (lex_equals("*"))
+    {
+        get_lexeme();
+        exp5();
+        // add
+    }
+    else if (lex_equals("/"))
+    {
+        get_lexeme();
+        exp5();
+        // add
+    }
+
+    else if (lex_equals("%"))
+    {
+        get_lexeme();
+        exp5();
+        // add
+    }
+}
+
+void Syntax::exp6()
+{
+    exp7();
+    if (lex_equals("!"))
+    {
+        get_lexeme();
+        exp6();
+        // add
+    }
+    else if (lex_equals("-"))
+    {
+            get_lexeme();
+            exp6();
+            // add
+    }
+}
+
+void Syntax::exp7()
+{
+    if (is_bracket())
     {
         check_open_round_bracket();
         get_lexeme();
         exp();
         check_close_round_bracket();
+        get_lexeme();
+    }
+    else if (is_function())
+    {
+        game_func_hdl();
+        get_lexeme();
+    }
+    else if (!(lex_equals("-") || lex_equals("!")))
+    {
+        if (!is_operand1())
+            throw ErrorSyntax(current_lexeme->line,
+              "Invalid operand. Const, func or var expected", NULL);
+        if (is_num())
+            
+        get_lexeme();
         exp1();
     }
-    else if (lex_equals("!"))
-    {
-        get_lexeme();
-        exp();
-    }
-    else if (current_lexeme->type == str_const)
-        get_lexeme();
 }
 
 void Syntax::get_lexeme()
