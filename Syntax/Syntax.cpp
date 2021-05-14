@@ -80,7 +80,6 @@ void Syntax::game_func_hdl()
             add_rpn(&rpn_list, new RPNMoney);
         else
             add_rpn(&rpn_list, new RPNRaw);
-    
     }
     else if (lex_equals("my_id"))
             add_rpn(&rpn_list, new RPNMyId);
@@ -246,7 +245,6 @@ void Syntax::exp7()
     else if (is_function())
     {
         game_func_hdl();
-        //add_rpn(&rpn_list, new RPNInt(atoi(current_lexeme->name)));
         get_lexeme();
     }
     else if (!(lex_equals("-") || lex_equals("!")))
@@ -263,8 +261,6 @@ void Syntax::exp7()
         }
         else if (is_str())
             add_rpn(&rpn_list, new RPNString(current_lexeme->name));
-//        else if (is_function())
-//            add_rpn(new RPNFunction);
         get_lexeme();
         exp1();
     }
