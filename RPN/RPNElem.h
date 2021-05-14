@@ -187,6 +187,13 @@ public:
     RPNElem *evaluate_fun(RPNItem **stack, var_list **vars) const;
 };
 
+class RPNMinus : public RPNFunction
+{
+public:
+    RPNMinus() {}
+    RPNElem *evaluate_fun(RPNItem **stack, var_list **vars) const;
+};
+
 class RPNMore : public RPNFunction
 {
 public:

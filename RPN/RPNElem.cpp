@@ -209,6 +209,13 @@ RPNElem *RPNNot::evaluate_fun(RPNItem **stack, var_list **vars) const {
     return new RPNInt(!(op1->get()));
 }
 
+RPNElem *RPNMinus::evaluate_fun(RPNItem **stack, var_list **vars) const {
+    RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
+    if (!op1)
+        throw 1;
+    return new RPNInt(-(op1->get()));
+}
+
 RPNElem *RPNMore::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));

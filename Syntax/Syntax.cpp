@@ -227,7 +227,7 @@ void Syntax::exp6()
     {
         get_lexeme();
         exp6();
-        add_rpn(&rpn_list, new RPNNot);
+        add_rpn(&rpn_list, new RPNMinus);
     }
     else
         exp7();
