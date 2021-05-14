@@ -12,33 +12,17 @@ class Interpreter
     RPNItem *stack;
     var_list *vars;
 
-    void clean_up(RPNItem *curr_cmd)
-    {
-        if (curr_cmd != NULL)
-        {
-            clean_up(curr_cmd->next);
-            delete curr_cmd->el;
-            delete curr_cmd;
-        }
-    }
+    void clean_rpn(RPNItem *curr_cmd);
+
+    void clean_vars(var_list *var_tbl);
 
 public:
 
-    Interpreter(RPNItem *list)
-    {
-        stack = NULL;
-        rpn_list = list;
-        begin_rpn = rpn_list;
-        vars = NULL;
-    }
+    Interpreter(RPNItem *list);
 
-    ~Interpreter() {clean_up(begin_rpn);}
+    ~Interpreter();
 
-    void start()
-    {
-        while (rpn_list != NULL)
-            rpn_list->el->evaluate(&stack, &rpn_list, &vars);
-    }
+    void start();
 };
 
 
