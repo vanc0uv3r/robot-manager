@@ -235,6 +235,8 @@ RPNElem *RPNAssign::evaluate_fun(RPNItem **stack, var_list **vars) const
         replace(*vars, op2->get(), op1->get());
     else
         add_var(vars, op1->get(), op2->get());
+    delete op1;
+    delete op2;
     return NULL;
 }
 
