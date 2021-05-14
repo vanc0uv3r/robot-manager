@@ -11,7 +11,6 @@ struct var_list
     var_list *next;
 };
 
-
 class RPNElem;
 
 struct RPNItem
@@ -28,38 +27,14 @@ public:
     virtual ~RPNElem() {}
 protected:
     static void push(RPNItem **stack, RPNElem *el);
+
     static RPNElem *pop(RPNItem **stack);
-    static void add_var(var_list **var_tbl, int value, char *name)
-    {
-        if (*var_tbl == NULL)
-        {
-            *var_tbl = new var_list;
-            (*var_tbl)->value = value;
-            (*var_tbl)->name = name;
-            (*var_tbl)->next = NULL;
-        }
-        else
-            add_var(&((*var_tbl)->next), value, name);
-    }
 
-    static var_list *find_var(var_list *var_tbl, char *target)
-    {
-        var_list *tmp = var_tbl;
-        while (tmp != NULL && strcmp(tmp->name, target))
-            tmp = tmp->next;
-        return tmp;
-    }
+    static void add_var(var_list **var_tbl, int value, char *name);
 
-    static void replace(var_list *var_tbl, char *target, int value)
-    {
-        var_list *tmp = var_tbl;
-        while (tmp != NULL)
-        {
-            if (!strcmp(tmp->name, target))
-                tmp->value = value;
-            tmp = tmp->next;
-        }
-    }
+    static var_list *find_var(var_list *var_tbl, char *target);
+
+    static void replace(var_list *var_tbl, char *target, int value);
 };
 
 class RPNConstant : public RPNElem
@@ -93,7 +68,7 @@ public:
     RPNString(char *s);
     RPNElem *clone() const;
     char *get() const;
-    ~RPNString() {delete[] value;}
+    ~RPNString() {delete value;}
 };
 
 class RPNLabel : public RPNConstant
@@ -103,7 +78,7 @@ public:
     RPNLabel(RPNItem *a = NULL);
     RPNElem *clone() const;
     RPNItem *get() const;
-    ~RPNLabel() {}
+    ~RPNLabel() {delete value;}
     void set(RPNItem *addr) {value = addr;}
 };
 
@@ -114,7 +89,7 @@ public:
     RPNVarAddr(char *a);
     RPNElem *clone() const;
     char *get() const;
-    ~RPNVarAddr() {}
+    ~RPNVarAddr() {delete value;}
 };
 
 class RPNFunPlus : public RPNFunction

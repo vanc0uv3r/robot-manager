@@ -26,6 +26,37 @@ RPNElem *RPNElem::pop(RPNItem **stack)
     return tmp_e;
 }
 
+void RPNElem::add_var(var_list **var_tbl, int value, char *name)
+{
+    if (*var_tbl == NULL)
+    {
+        *var_tbl = new var_list;
+        (*var_tbl)->value = value;
+        (*var_tbl)->name = name;
+        (*var_tbl)->next = NULL;
+    }
+    else
+        add_var(&((*var_tbl)->next), value, name);
+}
+
+var_list *RPNElem::find_var(var_list *var_tbl, char *target) {
+    var_list *tmp = var_tbl;
+    while (tmp != NULL && strcmp(tmp->name, target))
+        tmp = tmp->next;
+    return tmp;
+}
+
+void replace(var_list *var_tbl, char *target, int value)
+{
+    var_list *tmp = var_tbl;
+    while (tmp != NULL)
+    {
+        if (!strcmp(tmp->name, target))
+            tmp->value = value;
+        tmp = tmp->next;
+    }
+}
+
 RPNElem *RPNInt::clone() const
 {
     return new RPNInt(value);
