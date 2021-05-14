@@ -4,13 +4,27 @@
 #include <string.h>
 #include "../Lex/Lex.h"
 #include "ErrorSyntax.h"
+#include "../RPN/RPNElem.h"
 
 class Syntax
 {
     lexeme *current_lexeme;
     list *lexeme_list;
+    RPNItem *rpn_list;
 
     void get_lexeme();
+
+    void add_rpn(RPNItem **list, RPNElem *el)
+    {
+        if (*list == NULL)
+        {
+            *list = new RPNItem;
+            (*list)->el = el;
+            (*list)->next = NULL;
+        }
+        else
+            add_rpn(&((*list)->next), el);
+    }
 
     int is_bracket();
 
@@ -34,9 +48,7 @@ class Syntax
 
     void init_hdl();
 
-    void goto_hdl();
-
-    void condition();
+    RPNItem *get_last_elem();
 
     void if_hdl();
 
@@ -70,8 +82,6 @@ class Syntax
 
     void check_open_round_bracket();
 
-    void check_open_square_bracket();
-
     void check_close_square_bracket();
 
     void check_close_round_bracket();
@@ -88,8 +98,6 @@ class Syntax
 
     void check_close_curly_bracket();
 
-    int valid_exp_beginning();
-
     int is_operand1();
 
     int is_logic();
@@ -103,6 +111,12 @@ public:
     int check_end() {return lexeme_list == NULL;}
 
     void load_lexemes(list *lexemes) {lexeme_list = lexemes;}
+
+    Syntax() {rpn_list = NULL;}
+
+    void while_hdl();
+
+    RPNItem *get_rpn() {return rpn_list;}
 };
 
 

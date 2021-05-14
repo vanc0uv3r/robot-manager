@@ -18,18 +18,20 @@ void Syntax::s()
 {
     if (is_statement())
         statement();
-    else if (!is_label())
+    else
         throw ErrorSyntax(current_lexeme->line,
-          "Invalid token. Operator or label expected", current_lexeme->name);
+      "Invalid token. Operator or label expected", current_lexeme->name);
 }
 
 void Syntax::multi_statement()
 {
     if (is_var())
     {
+        add_rpn(&rpn_list, new RPNVarAddr(current_lexeme->name));
         get_lexeme();
         init_hdl();
         get_lexeme();
+        add_rpn(&rpn_list, new RPNAssign);
     }
     else if (is_key_word())
     {
@@ -43,7 +45,7 @@ void Syntax::multi_statement()
         check_semicolon();
         get_lexeme();
     }
-    if (!is_bracket() && !is_label())
+    if (!is_bracket())
         multi_statement();
 }
 
@@ -51,8 +53,10 @@ void Syntax::statement()
 {
     if (is_var())
     {
+        add_rpn(&rpn_list, new RPNVarAddr(current_lexeme->name));
         get_lexeme();
         init_hdl();
+        add_rpn(&rpn_list, new RPNAssign);
     }
     else if (is_key_word())
         keyword_hdl();
@@ -76,10 +80,19 @@ void Syntax::game_func_hdl()
         get_lexeme();
         exp();
         check_close_round_bracket();
+        if (lex_equals("money"))
+            add_rpn(&rpn_list, new RPNMoney); //change
+        else
+            add_rpn(&rpn_list, new RPNRaw);
+    
     }
-    else if (!(lex_equals("my_id") || lex_equals("turn")))
+    else if (lex_equals("my_id"))
+            add_rpn(&rpn_list, new RPNMyId);
+    else if (lex_equals("turn"))
+            add_rpn(&rpn_list, new RPNTurn);
+    else
         throw ErrorSyntax(current_lexeme->line,
-          "Unknown game command", current_lexeme->name);
+        "Unknown game command", current_lexeme->name);
 }
 
 void Syntax::check_close_round_bracket()
@@ -96,12 +109,12 @@ void Syntax::check_close_square_bracket()
           "Invalid syntax. ] expected", current_lexeme->name);
 }
 
-void Syntax::check_open_square_bracket()
-{
-    if (!(is_bracket() && lex_equals("[")))
-        throw ErrorSyntax(current_lexeme->line,
-          "Invalid syntax. [ expected", current_lexeme->name);
-}
+//void Syntax::check_open_square_bracket()
+//{
+//    if (!(is_bracket() && lex_equals("[")))
+//        throw ErrorSyntax(current_lexeme->line,
+//          "Invalid syntax. [ expected", current_lexeme->name);
+//}
 
 void Syntax::exp1()
 {
@@ -138,12 +151,6 @@ void Syntax::cond1()
     cond2();
 }
 
-int Syntax::valid_exp_beginning()
-{
-    return is_str() || is_operand1() || lex_equals("(")
-    || lex_equals("!");
-}
-
 int Syntax::is_operand1()
 {
     return is_num() || is_var() || is_function() || is_str();
@@ -156,7 +163,7 @@ void Syntax::exp()
     {
         get_lexeme();
         exp();
-        // add
+        add_rpn(&rpn_list, new RPNOr);
     }
 }
 
@@ -167,7 +174,7 @@ void Syntax::exp2()
     {
         get_lexeme();
         exp2();
-        // add
+        add_rpn(&rpn_list, new RPNAnd);
     }
 }
 
@@ -178,20 +185,20 @@ void Syntax::exp3()
     {
         get_lexeme();
         exp3();
-        // add
+        add_rpn(&rpn_list, new RPNMore);
     }
     else if (lex_equals("<"))
     {
         get_lexeme();
         exp3();
-        // add
+        add_rpn(&rpn_list, new RPNLess);
     }
 
     else if (lex_equals("="))
     {
         get_lexeme();
         exp3();
-        // add
+        add_rpn(&rpn_list, new RPNEquals);
     }
 }
 
@@ -202,13 +209,13 @@ void Syntax::exp4()
     {
         get_lexeme();
         exp4();
-        // add
+        add_rpn(&rpn_list, new RPNFunPlus);
     }
     else if (lex_equals("-"))
     {
         get_lexeme();
         exp4();
-        // add
+        add_rpn(&rpn_list, new RPNFunMinus);
     }
 }
 
@@ -219,38 +226,39 @@ void Syntax::exp5()
     {
         get_lexeme();
         exp5();
-        // add
+        add_rpn(&rpn_list, new RPNFunMultiply);
     }
     else if (lex_equals("/"))
     {
         get_lexeme();
         exp5();
-        // add
+        add_rpn(&rpn_list, new RPNFunDivision);
     }
 
     else if (lex_equals("%"))
     {
         get_lexeme();
         exp5();
-        // add
+        add_rpn(&rpn_list, new RPNFunModulo);
     }
 }
 
 void Syntax::exp6()
 {
-    exp7();
     if (lex_equals("!"))
     {
         get_lexeme();
         exp6();
-        // add
+        add_rpn(&rpn_list, new RPNNot);
     }
     else if (lex_equals("-"))
     {
-            get_lexeme();
-            exp6();
-            // add
+        get_lexeme();
+        exp6();
+        add_rpn(&rpn_list, new RPNNot);
     }
+    else
+        exp7();
 }
 
 void Syntax::exp7()
@@ -266,6 +274,7 @@ void Syntax::exp7()
     else if (is_function())
     {
         game_func_hdl();
+        //add_rpn(&rpn_list, new RPNInt(atoi(current_lexeme->name)));
         get_lexeme();
     }
     else if (!(lex_equals("-") || lex_equals("!")))
@@ -274,7 +283,16 @@ void Syntax::exp7()
             throw ErrorSyntax(current_lexeme->line,
               "Invalid operand. Const, func or var expected", NULL);
         if (is_num())
-            
+            add_rpn(&rpn_list, new RPNInt(atoi(current_lexeme->name)));
+        else if (is_var())
+        {
+            add_rpn(&rpn_list, new RPNVarAddr(current_lexeme->name));
+            add_rpn(&rpn_list, new RPNVar);
+        }
+        else if (is_str())
+            add_rpn(&rpn_list, new RPNString(current_lexeme->name));
+//        else if (is_function())
+//            add_rpn(new RPNFunction);
         get_lexeme();
         exp1();
     }
@@ -302,30 +320,9 @@ void Syntax::init_hdl()
         exp();
         check_semicolon();
     }
-    else if (is_bracket())
-    {
-        check_open_square_bracket();
-        get_lexeme();
-        exp();
-        check_close_square_bracket();
-        get_lexeme();
-        if (is_equal())
-        {
-            get_lexeme();
-            exp();
-        }
-        check_semicolon();
-    }
     else
         throw ErrorSyntax(current_lexeme->line,
-          "Invalid syntax. := expected", current_lexeme->name);
-}
-
-void Syntax::goto_hdl()
-{
-    if (current_lexeme->type != label)
-        throw ErrorSyntax(current_lexeme->line,
-          "Invalid syntax. label expected", current_lexeme->name);
+        "Invalid syntax. := expected", current_lexeme->name);
 }
 
 int Syntax::is_logic()
@@ -334,22 +331,45 @@ int Syntax::is_logic()
     && current_lexeme->type == key_word;
 }
 
-void Syntax::condition()
-{
-    get_lexeme();
-    cond1();
-}
-
 void Syntax::if_hdl()
 {
+    RPNLabel *lab = new RPNLabel;
     check_open_round_bracket();
-    condition();
+    get_lexeme();
+    exp();
+    add_rpn(&rpn_list, lab);
+    add_rpn(&rpn_list, new RPNOpGOFalse);
     check_close_round_bracket();
     get_lexeme();
     check_open_curly_bracket();
     get_lexeme();
     multi_statement();
     check_close_curly_bracket();
+    add_rpn(&rpn_list, new RPNNOP);
+    lab->set(get_last_elem());
+}
+
+void Syntax::while_hdl()
+{
+    RPNItem *addr1;
+    RPNLabel *lab1 = new RPNLabel;
+    check_open_round_bracket();
+    add_rpn(&rpn_list, new RPNNOP);
+    addr1 = get_last_elem();
+    get_lexeme();
+    exp();
+    add_rpn(&rpn_list, lab1);
+    add_rpn(&rpn_list, new RPNOpGOFalse);
+    check_close_round_bracket();
+    get_lexeme();
+    check_open_curly_bracket();
+    get_lexeme();
+    multi_statement();
+    check_close_curly_bracket();
+    add_rpn(&rpn_list, new RPNLabel(addr1));
+    add_rpn(&rpn_list, new RPNOpGO);
+    add_rpn(&rpn_list, new RPNNOP);
+    lab1->set(get_last_elem());
 }
 
 void Syntax::check_comma()
@@ -369,13 +389,19 @@ void Syntax::check_semicolon()
 int Syntax::is_service()
 {
     return lex_equals("buy") || lex_equals("sell")
-    || lex_equals("build") || lex_equals("prod") || lex_equals("endturn");
+    || lex_equals("build") || lex_equals("prod")
+    || lex_equals("endturn") || lex_equals("print");
 }
 
 void Syntax::service_hdl()
 {
+    char *tmp_lex = current_lexeme->name;
     if (lex_equals("buy") || lex_equals("sell"))
     {
+        if (lex_equals("buy"))
+            add_rpn(&rpn_list, new RPNBuy);
+        else if (lex_equals("sell"))
+            add_rpn(&rpn_list, new RPNSell);
         get_lexeme();
         exp();
         check_comma();
@@ -383,14 +409,22 @@ void Syntax::service_hdl()
         exp();
         check_semicolon();
     }
-    else if (lex_equals("build") || lex_equals("prod"))
+    else if (lex_equals("build") || lex_equals("prod")
+    || lex_equals("print"))
     {
         get_lexeme();
         exp();
         check_semicolon();
+//        if (lex_equals("build"))
+//            add_rpn(&rpn_list, new RPNBuild);
+//        else if (lex_equals("sell"))
+//            add_rpn(&rpn_list, new RPNSell);
+//        else if (lex_equals("print"))
+        add_rpn(&rpn_list, new RPNPrint);
     }
     else if (lex_equals("endturn"))
     {
+        add_rpn(&rpn_list, new RPNEndTurn);
         get_lexeme();
         check_semicolon();
     }
@@ -399,12 +433,10 @@ void Syntax::service_hdl()
 
 void Syntax::keyword_hdl()
 {
-    if (lex_equals("goto"))
+    if (lex_equals("while"))
     {
         get_lexeme();
-        goto_hdl();
-        get_lexeme();
-        check_semicolon();
+        while_hdl();
     }
     else if (lex_equals("if"))
     {
@@ -415,7 +447,7 @@ void Syntax::keyword_hdl()
         service_hdl();
     else
         throw ErrorSyntax(current_lexeme->line,
-          "Unknown operator", current_lexeme->name);
+      "Unknown operator", current_lexeme->name);
 }
 
 void Syntax::check_open_round_bracket()
@@ -437,4 +469,14 @@ void Syntax::check_close_curly_bracket()
     if (!(current_lexeme->type == brackets && lex_equals("}")))
         throw ErrorSyntax(current_lexeme->line,
           "Invalid syntax. } expected", current_lexeme->name);
+}
+
+RPNItem *Syntax::get_last_elem()
+{
+    RPNItem *tmp = rpn_list;
+    if (tmp == NULL)
+        return tmp;
+    while (tmp->next != NULL)
+        tmp = tmp->next;
+    return tmp;
 }
