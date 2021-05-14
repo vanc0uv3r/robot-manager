@@ -46,7 +46,7 @@ var_list *RPNElem::find_var(var_list *var_tbl, char *target) {
     return tmp;
 }
 
-void replace(var_list *var_tbl, char *target, int value)
+void RPNElem::replace(var_list *var_tbl, char *target, int value)
 {
     var_list *tmp = var_tbl;
     while (tmp != NULL)
