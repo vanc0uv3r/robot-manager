@@ -8,8 +8,19 @@
 class Interpreter
 {
     RPNItem *rpn_list;
+    RPNItem *begin_rpn;
     RPNItem *stack;
     var_list *vars;
+
+    void clean_up(RPNItem *curr_cmd)
+    {
+        if (curr_cmd != NULL)
+        {
+            clean_up(curr_cmd->next);
+            delete curr_cmd->el;
+            delete curr_cmd;
+        }
+    }
 
 public:
 
@@ -17,8 +28,11 @@ public:
     {
         stack = NULL;
         rpn_list = list;
+        begin_rpn = rpn_list;
         vars = NULL;
     }
+
+    ~Interpreter() {clean_up(begin_rpn);}
 
     void start()
     {
