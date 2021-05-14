@@ -2,7 +2,7 @@
 #include "Lex/Lex.h"
 #include "Syntax/Syntax.h"
 #include "Syntax/ErrorSyntax.h"
-#include "RPN/RPNElem.h"
+#include "Interpreter/Interpreter.h"
 #include "helpers/helpers.h"
 
 int lexeme_analyze(Lex &l)
@@ -36,6 +36,10 @@ int main(int argc, char *argv[])
     {
         err_syn.error_msg();
     }
+
+    Interpreter intr(s.get_rpn());
+
+    intr.start();
 
     return 0;
 }
