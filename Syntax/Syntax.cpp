@@ -9,11 +9,6 @@ void Syntax::start_syntax()
     }
 }
 
-int Syntax::is_label()
-{
-    return current_lexeme->type == label;
-}
-
 void Syntax::s()
 {
     if (is_statement())
@@ -73,6 +68,7 @@ void Syntax::statement()
 
 void Syntax::game_func_hdl()
 {
+    char *tmp_lex_name = current_lexeme->name;
     if (lex_equals("money") || lex_equals("raw"))
     {
         get_lexeme();
@@ -80,8 +76,8 @@ void Syntax::game_func_hdl()
         get_lexeme();
         exp();
         check_close_round_bracket();
-        if (lex_equals("money"))
-            add_rpn(&rpn_list, new RPNMoney); //change
+        if (str_equals(tmp_lex_name, "money"))
+            add_rpn(&rpn_list, new RPNMoney);
         else
             add_rpn(&rpn_list, new RPNRaw);
     
@@ -125,30 +121,6 @@ void Syntax::exp1()
         check_close_square_bracket();
         get_lexeme();
     }
-}
-
-void Syntax::cond2()
-{
-    if (is_logic())
-    {
-        get_lexeme();
-        cond1();
-    }
-}
-
-void Syntax::cond1()
-{
-    if (is_bracket())
-    {
-        check_open_round_bracket();
-        get_lexeme();
-        cond1();
-        check_close_round_bracket();
-        get_lexeme();
-    }
-    else
-        exp();
-    cond2();
 }
 
 int Syntax::is_operand1()
@@ -325,12 +297,6 @@ void Syntax::init_hdl()
         "Invalid syntax. := expected", current_lexeme->name);
 }
 
-int Syntax::is_logic()
-{
-    return (lex_equals("and") || lex_equals("or"))
-    && current_lexeme->type == key_word;
-}
-
 void Syntax::if_hdl()
 {
     RPNLabel *lab = new RPNLabel;
@@ -376,37 +342,38 @@ void Syntax::check_comma()
 {
     if (!(current_lexeme->type == delimiter && lex_equals(",")))
         throw ErrorSyntax(current_lexeme->line,
-          "Invalid syntax. , expected", current_lexeme->name);
+      "Invalid syntax. , expected", current_lexeme->name);
 }
 
 void Syntax::check_semicolon()
 {
     if (!lex_equals(";"))
         throw ErrorSyntax(current_lexeme->line,
-          "Invalid syntax. ; expected", current_lexeme->name);
+      "Invalid syntax. ; expected", current_lexeme->name);
 }
 
 int Syntax::is_service()
 {
     return lex_equals("buy") || lex_equals("sell")
     || lex_equals("build") || lex_equals("prod")
-    || lex_equals("endturn") || lex_equals("print");
+    || lex_equals("endturn") || lex_equals("print")
+    || lex_equals("println");
 }
 
 void Syntax::service_hdl()
 {
-    char *tmp_lex = current_lexeme->name;
+    char *tmp_lex_name = current_lexeme->name;
     if (lex_equals("buy") || lex_equals("sell"))
     {
-        if (lex_equals("buy"))
-            add_rpn(&rpn_list, new RPNBuy);
-        else if (lex_equals("sell"))
-            add_rpn(&rpn_list, new RPNSell);
         get_lexeme();
         exp();
         check_comma();
         get_lexeme();
         exp();
+        if (str_equals(tmp_lex_name, "buy"))
+            add_rpn(&rpn_list, new RPNBuy);
+        else if (str_equals(tmp_lex_name, "sell"))
+            add_rpn(&rpn_list, new RPNSell);
         check_semicolon();
     }
     else if (lex_equals("build") || lex_equals("prod")
@@ -415,12 +382,12 @@ void Syntax::service_hdl()
         get_lexeme();
         exp();
         check_semicolon();
-//        if (lex_equals("build"))
-//            add_rpn(&rpn_list, new RPNBuild);
-//        else if (lex_equals("sell"))
-//            add_rpn(&rpn_list, new RPNSell);
-//        else if (lex_equals("print"))
-        add_rpn(&rpn_list, new RPNPrint);
+        if (str_equals(tmp_lex_name, "build"))
+            add_rpn(&rpn_list, new RPNBuild);
+        else if (str_equals(tmp_lex_name, "sell"))
+            add_rpn(&rpn_list, new RPNSell);
+        else if (str_equals(tmp_lex_name, "print"))
+            add_rpn(&rpn_list, new RPNPrint);
     }
     else if (lex_equals("endturn"))
     {
@@ -429,7 +396,6 @@ void Syntax::service_hdl()
         check_semicolon();
     }
 }
-
 
 void Syntax::keyword_hdl()
 {
@@ -479,4 +445,16 @@ RPNItem *Syntax::get_last_elem()
     while (tmp->next != NULL)
         tmp = tmp->next;
     return tmp;
+}
+
+void Syntax::add_rpn(RPNItem **list, RPNElem *el)
+{
+    if (*list == NULL)
+    {
+        *list = new RPNItem;
+        (*list)->el = el;
+        (*list)->next = NULL;
+    }
+    else
+        add_rpn(&((*list)->next), el);
 }

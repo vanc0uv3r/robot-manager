@@ -12,23 +12,13 @@ class Syntax
     list *lexeme_list;
     RPNItem *rpn_list;
 
-    void get_lexeme();
-
-    void add_rpn(RPNItem **list, RPNElem *el)
-    {
-        if (*list == NULL)
-        {
-            *list = new RPNItem;
-            (*list)->el = el;
-            (*list)->next = NULL;
-        }
-        else
-            add_rpn(&((*list)->next), el);
-    }
+    RPNItem *get_last_elem();
 
     int is_bracket();
 
     int lex_equals(const char *str) {return !strcmp(current_lexeme->name, str);}
+
+    int str_equals(const char *trg, const char *str) {return !strcmp(trg, str);}
 
     int is_function() {return current_lexeme->type == function;}
 
@@ -44,11 +34,17 @@ class Syntax
 
     int is_statement() {return is_var() || is_key_word() || is_function();}
 
+    int is_operand1();
+
+    int is_service();
+
+    void get_lexeme();
+
+    void add_rpn(RPNItem **list, RPNElem *el);
+
     void exp();
 
     void init_hdl();
-
-    RPNItem *get_last_elem();
 
     void if_hdl();
 
@@ -72,12 +68,6 @@ class Syntax
 
     void exp7();
 
-    void cond2();
-
-    void cond1();
-
-    int is_service();
-
     void service_hdl();
 
     void check_open_round_bracket();
@@ -91,33 +81,26 @@ class Syntax
     void statement();
 
     void multi_statement();
-    
+
     void s();
 
     void check_open_curly_bracket();
 
     void check_close_curly_bracket();
 
-    int is_operand1();
-
-    int is_logic();
-
-    int is_label();
-
 public:
-
-    void start_syntax();
-
-    int check_end() {return lexeme_list == NULL;}
-
-    void load_lexemes(list *lexemes) {lexeme_list = lexemes;}
 
     Syntax() {rpn_list = NULL;}
 
-    void while_hdl();
-
     RPNItem *get_rpn() {return rpn_list;}
-};
 
+    int check_end() {return lexeme_list == NULL;}
+
+    void start_syntax();
+
+    void load_lexemes(list *lexemes) {lexeme_list = lexemes;}
+
+    void while_hdl();
+};
 
 #endif
