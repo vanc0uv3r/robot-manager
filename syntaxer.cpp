@@ -3,6 +3,7 @@
 #include "Syntax/Syntax.h"
 #include "Syntax/ErrorSyntax.h"
 #include "Interpreter/Interpreter.h"
+#include "Interpreter/ErrorInterpreter.h"
 #include "helpers/helpers.h"
 
 int lexeme_analyze(Lex &l)
@@ -39,7 +40,14 @@ int main(int argc, char *argv[])
 
     Interpreter intr(s.get_rpn());
 
-    intr.start();
+    try
+    {
+        intr.start();
+    }
+    catch (const ErrorInterpreter &err_syn)
+    {
+        err_syn.error_msg();
+    }
 
     return 0;
 }
