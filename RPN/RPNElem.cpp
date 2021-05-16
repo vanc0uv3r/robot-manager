@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "RPNElem.h"
-
+#include "../Interpreter/ErrorInterpreter.h"
 
 void RPNConstant::evaluate(RPNItem **stack, RPNItem **cur_cmd, var_list **vars) 
 const
@@ -130,10 +130,10 @@ RPNElem *RPNFunPlus::evaluate_fun(RPNItem **stack, var_list **vars) const
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
-        throw 1;
+        throw ErrorInterpreter("2 argument in + function must be integer");
     RPNInt *op2 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op2)
-        throw 2;
+        throw ErrorInterpreter("1 argument in + function must be integer");
     res = op1->get() + op2->get();
     delete op1;
     delete op2;
@@ -144,10 +144,10 @@ RPNElem *RPNFunMinus::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
-        throw 1;
+        throw ErrorInterpreter("2 argument in - function must be integer");
     RPNInt *op2 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op2)
-        throw 2;
+        throw ErrorInterpreter("1 argument in - function must be integer");
     res = op2->get() - op1->get();
     delete op1;
     delete op2;
@@ -158,10 +158,10 @@ RPNElem *RPNFunMultiply::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
-        throw 1;
+        throw ErrorInterpreter("2 argument in * function must be integer");
     RPNInt *op2 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op2)
-        throw 2;
+        throw ErrorInterpreter("1 argument in * function must be integer");
     res = op1->get() * op2->get();
     delete op1;
     delete op2;
@@ -172,10 +172,10 @@ RPNElem *RPNFunModulo::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
-        throw 1;
+        throw ErrorInterpreter("2 argument in % function must be integer");
     RPNInt *op2 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op2)
-        throw 2;
+        throw ErrorInterpreter("1 argument in % function must be integer");
     res = op2->get() % op1->get();
     delete op1;
     delete op2;
@@ -186,7 +186,7 @@ void RPNOpGO::evaluate(RPNItem **stack, RPNItem **cur_cmd, var_list **vars) cons
 {
     RPNLabel *label = dynamic_cast<RPNLabel *>(pop(stack));
     if (!label)
-        throw 1;
+        throw ErrorInterpreter("Label expected in OPGO");
     *cur_cmd = label->get();
     delete label;
 }
@@ -195,10 +195,10 @@ RPNElem *RPNFunDivision::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
-        throw 1;
+        throw ErrorInterpreter("2 argument in / function must be integer");
     RPNInt *op2 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op2)
-        throw 2;
+        throw ErrorInterpreter("1 argument in / function must be integer");
     res = op2->get() / op1->get();
     delete op1;
     delete op2;
@@ -210,10 +210,10 @@ const
 {
     RPNLabel *label = dynamic_cast<RPNLabel *>(pop(stack));
     if (!label)
-        throw 1;
+        throw ErrorInterpreter("Label expected in OPGOFalse");
     RPNInt *cond = dynamic_cast<RPNInt *>(pop(stack));
     if (!cond)
-        throw 2;
+        throw ErrorInterpreter("Condition expected");
     if (!cond->get())
     {
         *cur_cmd = label->get();
@@ -228,10 +228,10 @@ RPNElem *RPNVar::evaluate_fun(RPNItem **stack, var_list **vars) const
     var_list *var;
     RPNVarAddr *op = dynamic_cast<RPNVarAddr *>(pop(stack));
     if (!op)
-        throw 2;
+        throw ErrorInterpreter("VarAddr expected");
     var = find_var(*vars, op->get());
     if (!var)
-        throw 1;
+        throw ErrorInterpreter("There is no such name of variable");
     delete op;
     return new RPNInt(var->value);
 }
@@ -240,10 +240,10 @@ RPNElem *RPNAssign::evaluate_fun(RPNItem **stack, var_list **vars) const
 {
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
-        throw 1;
+        throw ErrorInterpreter("Argument in assigment must be integer");
     RPNVarAddr *op2 = dynamic_cast<RPNVarAddr *>(pop(stack));
     if (!op2)
-        throw 1;
+        throw ErrorInterpreter("Argument in assigment must be integer");
     if (find_var(*vars, op2->get()))
         replace(*vars, op2->get(), op1->get());
     else
@@ -257,8 +257,8 @@ RPNElem *RPNNot::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
-        throw 1;
-    res = -(op1->get());
+        throw ErrorInterpreter("argument in not function must be integer");
+    res = !(op1->get());
     delete op1;
     return new RPNInt(res);
 }
@@ -267,7 +267,8 @@ RPNElem *RPNMinus::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
-        throw 1;
+        throw ErrorInterpreter("argument in unary minus function must be "
+                               "integer");
     res = -(op1->get());
     delete op1;
     return new RPNInt(res);
@@ -277,10 +278,10 @@ RPNElem *RPNMore::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
-        throw 1;
+        throw ErrorInterpreter("2 argument in > function must be integer");
     RPNInt *op2 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op2)
-        throw 2;
+        throw ErrorInterpreter("1 argument in > function must be integer");
     res = op2->get() > op1->get();
     delete op1;
     delete op2;
@@ -291,10 +292,10 @@ RPNElem *RPNLess::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
-        throw 1;
+        throw ErrorInterpreter("2 argument in < function must be integer");
     RPNInt *op2 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op2)
-        throw 2;
+        throw ErrorInterpreter("1 argument in < function must be integer");
     res = op2->get() < op1->get();
     delete op1;
     delete op2;
@@ -305,10 +306,10 @@ RPNElem *RPNEquals::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
-        throw 1;
+        throw ErrorInterpreter("2 argument in = function must be integer");
     RPNInt *op2 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op2)
-        throw 2;
+        throw ErrorInterpreter("1 argument in = function must be integer");
     res = (op2->get() == op1->get());
     delete op1;
     delete op2;
@@ -319,10 +320,10 @@ RPNElem *RPNAnd::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
-        throw 1;
+        throw ErrorInterpreter("2 argument in and function must be int");
     RPNInt *op2 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op2)
-        throw 2;
+        throw ErrorInterpreter("1 argument in and function must be int");
     res = op2->get() && op1->get();
     delete op1;
     delete op2;
@@ -333,10 +334,10 @@ RPNElem *RPNOr::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
-        throw 1;
+        throw ErrorInterpreter("2 argument in or function must be integer");
     RPNInt *op2 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op2)
-        throw 2;
+        throw ErrorInterpreter("1 argument in or function must be integer");
     res = op2->get() || op1->get();
     delete op1;
     delete op2;
