@@ -95,7 +95,7 @@ void Lex::clean_lexemes()
     {
         p = lexeme_list;
         lexeme_list = lexeme_list->next;
-        delete[] p->l->name;
+        delete p->l->name;
         delete p->l;
         delete p;
     }
@@ -278,7 +278,7 @@ int Lex::is_alpha()
 
 void Lex::check_buffer()
 {
-    if (buffer[0] != '\0')
+    if (buffer[0] != '\0' && machine_state != error)
         add_lexeme(&lexeme_list);
 }
 

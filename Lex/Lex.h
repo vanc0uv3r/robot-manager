@@ -99,7 +99,9 @@ class Lex
 public:
     Lex();
 
-    ~Lex(){ delete[] buffer; clean_lexemes();}
+    ~Lex(){ delete buffer;
+        clean_lexemes();
+    }
 
     list *get_lexemes();
 

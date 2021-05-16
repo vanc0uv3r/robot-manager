@@ -4,8 +4,8 @@ CFLAGS= -Wall -g
 
 all: bot
 
-bot: main.o robot.o helpers.o competitor.o syntaxer.o lexer.o error_syntax.o
-	g++ main.o robot.o helpers.o competitor.o syntaxer.o lexer.o error_syntax.o -o robot_manager
+bot: main.o robot.o helpers.o competitor.o syntaxer.o lexer.o error_syntax.o rpn.o interpreter.o
+	g++ main.o robot.o helpers.o competitor.o syntaxer.o lexer.o error_syntax.o rpn.o interpreter.o -o robot_manager
 	rm -rf *.o
 
 main.o: syntaxer.cpp
@@ -28,3 +28,9 @@ error_syntax.o: Syntax/ErrorSyntax.cpp Syntax/ErrorSyntax.h
 
 lexer.o: Lex/Lex.cpp Lex/Lex.h
 	g++ -c Lex/Lex.cpp -o lexer.o
+
+rpn.o: RPN/RPNElem.cpp RPN/RPNElem.h
+	g++ -c RPN/RPNElem.cpp -o rpn.o
+
+interpreter.o: Interpreter/Interpreter.h Interpreter/Interpreter.cpp
+	g++ -c Interpreter/Interpreter.cpp -o interpreter.o
