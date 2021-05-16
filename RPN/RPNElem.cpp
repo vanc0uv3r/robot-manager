@@ -30,9 +30,11 @@ void RPNElem::add_var(var_list **var_tbl, int value, char *name)
 {
     if (*var_tbl == NULL)
     {
+        int len = strlen(name);
         *var_tbl = new var_list;
         (*var_tbl)->value = value;
-        (*var_tbl)->name = name;
+        (*var_tbl)->name = new char [len + 1];
+        strncpy((*var_tbl)->name, name, len + 1);
         (*var_tbl)->next = NULL;
     }
     else
@@ -108,10 +110,13 @@ char *RPNVarAddr::get() const {
 }
 
 RPNVarAddr::RPNVarAddr(char *a) {
-    value = a;
+    int str_len = strlen(a);
+    value = new char[str_len + 1];
+    strncpy(value, a, str_len);
+    value[str_len] = '\0';
 }
 
-void RPNFunction::evaluate(RPNItem **stack, RPNItem **cur_cmd, var_list **vars) 
+void RPNFunction::evaluate(RPNItem **stack, RPNItem **cur_cmd, var_list **vars)
 const
 {
     RPNElem *res = evaluate_fun(stack, vars);
@@ -144,6 +149,8 @@ RPNElem *RPNFunMinus::evaluate_fun(RPNItem **stack, var_list **vars) const {
     if (!op2)
         throw 2;
     res = op2->get() - op1->get();
+    delete op1;
+    delete op2;
     return new RPNInt(res);
 }
 
@@ -156,6 +163,8 @@ RPNElem *RPNFunMultiply::evaluate_fun(RPNItem **stack, var_list **vars) const {
     if (!op2)
         throw 2;
     res = op1->get() * op2->get();
+    delete op1;
+    delete op2;
     return new RPNInt(res);
 }
 
@@ -168,6 +177,8 @@ RPNElem *RPNFunModulo::evaluate_fun(RPNItem **stack, var_list **vars) const {
     if (!op2)
         throw 2;
     res = op2->get() % op1->get();
+    delete op1;
+    delete op2;
     return new RPNInt(res);
 }
 
@@ -189,6 +200,8 @@ RPNElem *RPNFunDivision::evaluate_fun(RPNItem **stack, var_list **vars) const {
     if (!op2)
         throw 2;
     res = op2->get() / op1->get();
+    delete op1;
+    delete op2;
     return new RPNInt(res);
 }
 
@@ -241,17 +254,23 @@ RPNElem *RPNAssign::evaluate_fun(RPNItem **stack, var_list **vars) const
 }
 
 RPNElem *RPNNot::evaluate_fun(RPNItem **stack, var_list **vars) const {
+    int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
         throw 1;
-    return new RPNInt(!(op1->get()));
+    res = -(op1->get());
+    delete op1;
+    return new RPNInt(res);
 }
 
 RPNElem *RPNMinus::evaluate_fun(RPNItem **stack, var_list **vars) const {
+    int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
     if (!op1)
         throw 1;
-    return new RPNInt(-(op1->get()));
+    res = -(op1->get());
+    delete op1;
+    return new RPNInt(res);
 }
 
 RPNElem *RPNMore::evaluate_fun(RPNItem **stack, var_list **vars) const {
@@ -263,6 +282,8 @@ RPNElem *RPNMore::evaluate_fun(RPNItem **stack, var_list **vars) const {
     if (!op2)
         throw 2;
     res = op2->get() > op1->get();
+    delete op1;
+    delete op2;
     return new RPNInt(res);
 }
 
@@ -275,6 +296,8 @@ RPNElem *RPNLess::evaluate_fun(RPNItem **stack, var_list **vars) const {
     if (!op2)
         throw 2;
     res = op2->get() < op1->get();
+    delete op1;
+    delete op2;
     return new RPNInt(res);
 }
 
@@ -287,6 +310,8 @@ RPNElem *RPNEquals::evaluate_fun(RPNItem **stack, var_list **vars) const {
     if (!op2)
         throw 2;
     res = (op2->get() == op1->get());
+    delete op1;
+    delete op2;
     return new RPNInt(res);
 }
 
@@ -299,6 +324,8 @@ RPNElem *RPNAnd::evaluate_fun(RPNItem **stack, var_list **vars) const {
     if (!op2)
         throw 2;
     res = op2->get() && op1->get();
+    delete op1;
+    delete op2;
     return new RPNInt(res);
 }
 
@@ -311,6 +338,8 @@ RPNElem *RPNOr::evaluate_fun(RPNItem **stack, var_list **vars) const {
     if (!op2)
         throw 2;
     res = op2->get() || op1->get();
+    delete op1;
+    delete op2;
     return new RPNInt(res);
 }
 
@@ -340,9 +369,15 @@ RPNElem *RPNPrint::evaluate_fun(RPNItem **stack, var_list **vars) const
     RPNInt *op1;
     RPNString *op2;
     if ((op1 = dynamic_cast<RPNInt *>(op)))
+    {
         printf("%d", op1->get());
+        delete op1;
+    }
     else if ((op2 = dynamic_cast<RPNString *>(op)))
+    {
         printf("%s", op2->get());
+        delete op2;
+    }
     return NULL;
 }
 

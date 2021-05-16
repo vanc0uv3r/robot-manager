@@ -95,7 +95,7 @@ void Lex::clean_lexemes()
     {
         p = lexeme_list;
         lexeme_list = lexeme_list->next;
-        delete[] p->l->name;
+        delete p->l->name;
         delete p->l;
         delete p;
     }

@@ -30,8 +30,8 @@ Interpreter::Interpreter(RPNItem *list)
 
 Interpreter::~Interpreter()
 {
-//    clean_rpn(begin_rpn);
-//    clean_vars(vars);
+    clean_rpn(begin_rpn);
+    clean_vars(vars);
 }
 
 void Interpreter::start()
