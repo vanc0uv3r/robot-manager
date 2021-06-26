@@ -69,6 +69,15 @@ int RPNInt::get() const
     return value;
 }
 
+RPNInt::RPNInt(int a)
+{
+    int size = 20;
+    char *tmp = new char [size];
+    value = a;
+    snprintf(tmp, size, "%d", value);
+    name = tmp;
+}
+
 RPNElem *RPNString::clone() const
 {
     return new RPNString(value);
@@ -86,6 +95,10 @@ RPNString::RPNString(char *s)
     value[str_len] = '\0';
 }
 
+char *RPNString::getPRNName() {
+    return NULL;
+}
+
 RPNLabel::RPNLabel(RPNItem *a)
 {
     value = a;
@@ -101,6 +114,10 @@ RPNItem *RPNLabel::get() const
     return value;
 }
 
+const char *RPNLabel::getPRNName() {
+    return "label";
+}
+
 RPNElem *RPNVarAddr::clone() const {
     return new RPNVarAddr(value);
 }
@@ -114,6 +131,15 @@ RPNVarAddr::RPNVarAddr(char *a) {
     value = new char[str_len + 1];
     strncpy(value, a, str_len);
     value[str_len] = '\0';
+}
+
+const char *RPNVarAddr::getPRNName() {
+    return get();
+}
+
+const char *RPNInt::getPRNName()
+{
+    return name;
 }
 
 void RPNFunction::evaluate(RPNItem **stack, RPNItem **cur_cmd, var_list **vars)
@@ -140,6 +166,10 @@ RPNElem *RPNFunPlus::evaluate_fun(RPNItem **stack, var_list **vars) const
     return new RPNInt(res);
 }
 
+const char *RPNFunPlus::getPRNName() {
+    return "+";
+}
+
 RPNElem *RPNFunMinus::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
@@ -152,6 +182,10 @@ RPNElem *RPNFunMinus::evaluate_fun(RPNItem **stack, var_list **vars) const {
     delete op1;
     delete op2;
     return new RPNInt(res);
+}
+
+const char *RPNFunMinus::getPRNName() {
+    return "-";
 }
 
 RPNElem *RPNFunMultiply::evaluate_fun(RPNItem **stack, var_list **vars) const {
@@ -168,6 +202,10 @@ RPNElem *RPNFunMultiply::evaluate_fun(RPNItem **stack, var_list **vars) const {
     return new RPNInt(res);
 }
 
+const char *RPNFunMultiply::getPRNName() {
+    return "*";
+}
+
 RPNElem *RPNFunModulo::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
@@ -182,6 +220,10 @@ RPNElem *RPNFunModulo::evaluate_fun(RPNItem **stack, var_list **vars) const {
     return new RPNInt(res);
 }
 
+const char *RPNFunModulo::getPRNName() {
+    return "%";
+}
+
 void RPNOpGO::evaluate(RPNItem **stack, RPNItem **cur_cmd, var_list **vars) const
 {
     RPNLabel *label = dynamic_cast<RPNLabel *>(pop(stack));
@@ -189,6 +231,10 @@ void RPNOpGO::evaluate(RPNItem **stack, RPNItem **cur_cmd, var_list **vars) cons
         throw ErrorInterpreter("Label expected in OPGO");
     *cur_cmd = label->get();
     delete label;
+}
+
+const char *RPNOpGO::getPRNName() {
+    return "!";
 }
 
 RPNElem *RPNFunDivision::evaluate_fun(RPNItem **stack, var_list **vars) const {
@@ -203,6 +249,10 @@ RPNElem *RPNFunDivision::evaluate_fun(RPNItem **stack, var_list **vars) const {
     delete op1;
     delete op2;
     return new RPNInt(res);
+}
+
+const char *RPNFunDivision::getPRNName() {
+    return "/";
 }
 
 void RPNOpGOFalse::evaluate(RPNItem **stack, RPNItem **cur_cmd, var_list **vars)
@@ -223,6 +273,10 @@ const
         *cur_cmd = (*cur_cmd)->next;
 }
 
+const char *RPNOpGOFalse::getPRNName() {
+    return "!F";
+}
+
 RPNElem *RPNVar::evaluate_fun(RPNItem **stack, var_list **vars) const
 {
     var_list *var;
@@ -234,6 +288,10 @@ RPNElem *RPNVar::evaluate_fun(RPNItem **stack, var_list **vars) const
         throw ErrorInterpreter("There is no such name of variable");
     delete op;
     return new RPNInt(var->value);
+}
+
+const char *RPNVar::getPRNName() {
+    return "&";
 }
 
 RPNElem *RPNAssign::evaluate_fun(RPNItem **stack, var_list **vars) const
@@ -253,6 +311,10 @@ RPNElem *RPNAssign::evaluate_fun(RPNItem **stack, var_list **vars) const
     return NULL;
 }
 
+const char *RPNAssign::getPRNName() {
+    return ":=";
+}
+
 RPNElem *RPNNot::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
@@ -261,6 +323,10 @@ RPNElem *RPNNot::evaluate_fun(RPNItem **stack, var_list **vars) const {
     res = !(op1->get());
     delete op1;
     return new RPNInt(res);
+}
+
+const char *RPNNot::getPRNName() {
+    return "!";
 }
 
 RPNElem *RPNMinus::evaluate_fun(RPNItem **stack, var_list **vars) const {
@@ -272,6 +338,10 @@ RPNElem *RPNMinus::evaluate_fun(RPNItem **stack, var_list **vars) const {
     res = -(op1->get());
     delete op1;
     return new RPNInt(res);
+}
+
+const char *RPNMinus::getPRNName() {
+    return "-";
 }
 
 RPNElem *RPNMore::evaluate_fun(RPNItem **stack, var_list **vars) const {
@@ -288,6 +358,10 @@ RPNElem *RPNMore::evaluate_fun(RPNItem **stack, var_list **vars) const {
     return new RPNInt(res);
 }
 
+const char *RPNMore::getPRNName() {
+    return ">";
+}
+
 RPNElem *RPNLess::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
@@ -300,6 +374,10 @@ RPNElem *RPNLess::evaluate_fun(RPNItem **stack, var_list **vars) const {
     delete op1;
     delete op2;
     return new RPNInt(res);
+}
+
+const char *RPNLess::getPRNName() {
+    return "<";
 }
 
 RPNElem *RPNEquals::evaluate_fun(RPNItem **stack, var_list **vars) const {
@@ -316,6 +394,10 @@ RPNElem *RPNEquals::evaluate_fun(RPNItem **stack, var_list **vars) const {
     return new RPNInt(res);
 }
 
+const char *RPNEquals::getPRNName() {
+    return "=";
+}
+
 RPNElem *RPNAnd::evaluate_fun(RPNItem **stack, var_list **vars) const {
     int res;
     RPNInt *op1 = dynamic_cast<RPNInt *>(pop(stack));
@@ -328,6 +410,10 @@ RPNElem *RPNAnd::evaluate_fun(RPNItem **stack, var_list **vars) const {
     delete op1;
     delete op2;
     return new RPNInt(res);
+}
+
+const char *RPNAnd::getPRNName() {
+    return "and";
 }
 
 RPNElem *RPNOr::evaluate_fun(RPNItem **stack, var_list **vars) const {
@@ -344,6 +430,10 @@ RPNElem *RPNOr::evaluate_fun(RPNItem **stack, var_list **vars) const {
     return new RPNInt(res);
 }
 
+const char *RPNOr::getPRNName() {
+    return "or";
+}
+
 RPNElem *RPNBuy::evaluate_fun(RPNItem **stack, var_list **vars) const{
     return NULL;
 }
@@ -358,6 +448,10 @@ RPNElem *RPNProd::evaluate_fun(RPNItem **stack, var_list **vars) const {
 
 RPNElem *RPNSell::evaluate_fun(RPNItem **stack, var_list **vars) const {
     return NULL;
+}
+
+const char *RPNSell::getPRNName() {
+    return "sell";
 }
 
 RPNElem *RPNBuild::evaluate_fun(RPNItem **stack, var_list **vars) const {
@@ -382,8 +476,16 @@ RPNElem *RPNPrint::evaluate_fun(RPNItem **stack, var_list **vars) const
     return NULL;
 }
 
+const char *RPNPrint::getPRNName() {
+    return "print";
+}
+
 RPNElem *RPNMyId::evaluate_fun(RPNItem **stack, var_list **vars) const {
     return NULL;
+}
+
+const char *RPNMyId::getPRNName() {
+    return "my_id";
 }
 
 RPNElem *RPNTurn::evaluate_fun(RPNItem **stack, var_list **vars) const {
@@ -396,4 +498,8 @@ RPNElem *RPNMoney::evaluate_fun(RPNItem **stack, var_list **vars) const {
 
 RPNElem *RPNRaw::evaluate_fun(RPNItem **stack, var_list **vars) const {
     return NULL;
+}
+
+const char *RPNNOP::getPRNName() {
+    return "nop";
 }

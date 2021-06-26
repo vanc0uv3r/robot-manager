@@ -104,13 +104,6 @@ void Syntax::check_close_square_bracket()
           "Invalid syntax. ] expected", current_lexeme->name);
 }
 
-//void Syntax::check_open_square_bracket()
-//{
-//    if (!(is_bracket() && lex_equals("[")))
-//        throw ErrorSyntax(current_lexeme->line,
-//          "Invalid syntax. [ expected", current_lexeme->name);
-//}
-
 void Syntax::exp1()
 {
     if (is_bracket() && lex_equals("["))
