@@ -4,6 +4,7 @@
 #include "Syntax/ErrorSyntax.h"
 #include "Interpreter/Interpreter.h"
 #include "Interpreter/ErrorInterpreter.h"
+#include "RPN/RPNElem.h"
 #include "helpers/helpers.h"
 
 int lexeme_analyze(Lex &l)
@@ -19,6 +20,18 @@ int lexeme_analyze(Lex &l)
     }
     print_lexemes(l.get_lexemes());
     return 1;
+}
+
+void print_rpn(RPNItem *list)
+{
+    while (list != NULL)
+    {
+        printf("%s", list->el->getPRNName());
+        if (list->next != NULL)
+            printf(" ");
+        list = list->next;
+    }
+    printf("\n");
 }
 
 int main(int argc, char *argv[])
@@ -37,6 +50,8 @@ int main(int argc, char *argv[])
     {
         err_syn.error_msg();
     }
+
+    print_rpn(s.get_rpn());
 
     Interpreter intr(s.get_rpn());
 
