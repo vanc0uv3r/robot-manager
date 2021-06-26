@@ -18,7 +18,6 @@ int lexeme_analyze(Lex &l)
         hdl_lex_error(&l);
         return 0;
     }
-    print_lexemes(l.get_lexemes());
     return 1;
 }
 
