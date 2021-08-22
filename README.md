@@ -8,7 +8,12 @@
 Более подробное описание правил игры и самого проекта можно найти в 
 [пособии](http://stolyarov.info/books) А. В. Столярова.
 Код игрового сервера можно найти на [сайте](https://al.cs.msu.ru/classes.html)
-кафедры алгоритмических языков ВМК МГУ.
+кафедры алгоритмических языков ВМК МГУ.  
+
+## Branches
+**[main](https://github.com/vanc0uv3r/robot-manager)** - бот, играющий в менеджера по тупой стратегии
+
+**[lang](https://github.com/vanc0uv3r/robot-manager/tree/syntax)** - язык программирования для робота
 ## Installation & Usage
 ```
 git clone https://github.com/vanc0uv3r/robot-manager.git && cd robot-manager
