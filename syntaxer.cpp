@@ -23,6 +23,7 @@ int lexeme_analyze(Lex &l)
 
 void print_rpn(RPNItem *list)
 {
+    printf("PRN list:\n");
     while (list != NULL)
     {
         printf("%s", list->el->getPRNName());
@@ -30,7 +31,7 @@ void print_rpn(RPNItem *list)
             printf(" ");
         list = list->next;
     }
-    printf("\n");
+    printf("\nEnd PRN list\n");
 }
 
 int main(int argc, char *argv[])
