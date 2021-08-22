@@ -13,7 +13,7 @@
 ## Branches
 **[main](https://github.com/vanc0uv3r/robot-manager)** - бот, играющий в менеджера по тупой стратегии
 
-**[lang](https://github.com/vanc0uv3r/robot-manager/tree/syntax)** - язык программирования для робота
+**[lang](https://github.com/vanc0uv3r/robot-manager/tree/lang)** - язык программирования для робота
 ## Installation & Usage
 ```
 git clone https://github.com/vanc0uv3r/robot-manager.git && cd robot-manager
