@@ -18,5 +18,5 @@
 ```
 git clone https://github.com/vanc0uv3r/robot-manager.git && cd robot-manager
 make
-./robot <ip_addr> <port> <bot_nick> join <room> | create <players>
+./robot_manager <ip_addr> <port> <bot_nick> (join <room> | create <players>)
 ```
